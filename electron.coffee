@@ -33,8 +33,8 @@ if isElectron
         win = new BrowserWindow options
 
         # Setting minimum size.
-        resizable = false or options?.resizable
-        win.setResizable false
+        resizable = isDebug or options?.resizable
+        win.setResizable resizable
         # and load the index.html of the app.
         win.loadURL url.format
             pathname: path.join __dirname, '/static_files/index.html'
