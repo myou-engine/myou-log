@@ -1,7 +1,7 @@
 
 {MyoUI, Theme, mixins, css_utils, react_utils} = require 'myoui'
 # TODO: It is requiring local myoui from package.json but it is not commited.
-# current published myoui version (0.0.2) is not fully compatible with this app. 
+# current published myoui version (0.0.2) is not fully compatible with this app.
 
 # adding default css code to the document
 require 'myoui/default_fonts'
@@ -244,7 +244,10 @@ main_component = Component
             else if time < 3600000 # 1hour
                 ftime = '\n' + Math.floor(time/60000) + ' min'
             else
-                ftime = '\n' + Math.floor(time/3600000) + ' hours ' + (time % 3600000)*60 + ' min'
+                hours = time/3600000
+                only_hours = Math.floor(hours)
+                only_min = Math.floor((hours - only_hours) * 60)
+                ftime = '\n' + only_hours + ' hours ' + only_min + ' min'
 
             if activity_state.active
                 are_you_working_message = "
