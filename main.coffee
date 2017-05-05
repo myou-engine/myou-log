@@ -51,12 +51,18 @@ show_window()
 {Tray, Menu} = electron.remote
 path = require 'path'
 trayMenuTemplate = [
+
     {
        label: 'Show app',
        click: ->
           show_window()
     },
-
+    {
+       label: 'Clear log and quit',
+       click: ->
+          clear_log?()
+          ewin.close()
+    },
     {
        label: 'Quit',
        click: ->
