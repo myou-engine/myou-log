@@ -1,9 +1,11 @@
 
-{MyoUI, Theme, mixins, css_utils, react_utils} = require '../myoui/main.coffee'
+{MyoUI, Theme, mixins, css_utils, react_utils} = require 'myoui'
+# TODO: It is requiring local myoui from package.json but it is not commited.
+# current published myoui version (0.0.2) is not fully compatible with this app. 
 
 # adding default css code to the document
-require '../myoui/default_fonts'
-require '../myoui/default_animations'
+require 'myoui/default_fonts'
+require 'myoui/default_animations'
 
 theme = new Theme
 window.theme = theme
@@ -28,26 +30,115 @@ theme.UIElementContainer = (disabled, useHighlight)-> [
 ]
 
 myoui = new MyoUI theme
-
-window.ewin = ewin = require('electron').remote.getCurrentWindow();
+electron = require 'electron'
+window.ewin = ewin = electron.remote.getCurrentWindow()
+ewin.setAlwaysOnTop true
 window.isDebug = ewin.isDebug
+
+hide_window_timeout = null
+hide_window = ->
+    disable_render()
+    hide_window_timeout = setTimeout ewin.hide, 200
+    setTimeout show_window, 60000 * 5 # 5 min
+
+show_window = ->
+    ewin.show()
+    set_inactivity_check?()
+    enable_render?()
+
+show_window()
+
+{Tray, Menu} = electron.remote
+path = require 'path'
+trayMenuTemplate = [
+    {
+       label: 'Show app',
+       click: ->
+          show_window()
+    },
+
+    {
+       label: 'Quit',
+       click: ->
+          ewin.close()
+    }
+]
+
+window.trayMenu = Menu.buildFromTemplate trayMenuTemplate
+if tray?
+    tray.destroy()
+window.tray = new Tray require('./static_files/images/icon.png').replace('file://','')
+tray.setContextMenu trayMenu
+tray.on 'click', ->
+    show_window()
+ewin.on 'restore', ->
+    clearTimeout hide_window_timeout
+    if current_dialog == 1
+        set_auto_hide_time 10
+ewin.on 'minimize', ->
+    hide_window()
 
 app = document.getElementById 'app'
 
-# Creating instances of myoui elements
-label =
+log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
+if isDebug
+    window.log = log
 
+activity_state = (localStorage.myoulog_activity_state? and
+    JSON.parse(localStorage.myoulog_activity_state)) or
+    {active: false, date: Date.now()}
+last_task = localStorage.myoulog_last_task or ''
+first_log = false
+
+add_log_entry = (entry)->
+    new_entry = false
+    if entry.active != activity_state.active
+        activity_state.active = entry.active
+        activity_state.date = entry.date
+        localStorage.myoulog_activity_state = JSON.stringify activity_state
+        new_entry = true
+
+    if entry.task? and entry.task != last_task
+        last_task = entry.task
+        localStorage.myoulog_last_task = last_task
+        new_entry = true
+
+    if new_entry
+        first_log = true
+        console.log 'New log entry:', entry
+        log.push entry
+        localStorage.myoulog = JSON.stringify log
+
+
+window.clear_log = ->
+    localStorage.removeItem 'myoulog'
+    localStorage.removeItem 'myoulog_activity_state'
+    localStorage.removeItem 'myoulog_last_task'
+    localStorage.removeItem 'myoulog_last_date'
+
+if localStorage.myoulog_last_date?
+    last_date = parseInt localStorage.myoulog_last_date
+    add_log_entry {active:false, date:last_date}
+
+last_check_inactivity_interval = null
+set_inactivity_check = ->
+    clearInterval last_check_inactivity_interval
+    check_inactivity = ->
+        if ewin.isVisible() and current_dialog == 0
+            add_log_entry {active:false, date:Date.now()}
+            render_all()
+
+    last_check_inactivity_interval = setInterval check_inactivity, 60000
+
+# Creating instances of myoui elements
 text_input = new myoui.TextInput
     label: (maxWidth='calc(100% - 30px)')->
         maxWidth: 'calc(100% - 10px)'
         margin: "0px #{theme.spacing}px"
 
-
 button = new myoui.Button
     button:
         maxWidth: 200
-
-
 
 # MyoUI includes some React utils.
 {Component, React, ReactDOM} = react_utils
@@ -71,14 +162,66 @@ message = (message, custom_style) ->
         ]
         message
 
+auto_hide_time = Infinity
+last_auto_hide_interval = null
+set_auto_hide_time = (time=10)->
+    clearInterval last_auto_hide_interval
+    auto_hide_time = time
+    if auto_hide_time == Infinity
+        render_all()
+        return
+
+    auto_hide_interval = ->
+        auto_hide_time -= 1
+        if auto_hide_time == 0
+            set_auto_hide_time Infinity
+            set_dialog(0)
+            hide_window()
+        render_all()
+
+    last_auto_hide_interval = setInterval auto_hide_interval, 1000
+    render_all()
+
+set_dialog = ->
+enable_render = ->
+disable_render = ->
+
+current_dialog = 0
 main_component = Component
+
+    componentDidUpdate: (cosas)->
+        current_dialog = @state.dialog
+
+    componentWillMount: ->
+        current_dialog = @state.dialog
+        set_inactivity_check()
+        set_dialog = (dialog=0)=>
+            if dialog == 0
+                set_inactivity_check()
+            @setState {dialog}
+
+        enable_render = =>
+            @setState {render:true}
+
+        disable_render = =>
+            @setState {render:false}
+
     getInitialState: ->
         dialog: 0
+        render: true
+
     render: ->
-        working_on_value = "Last task by default"
+
+        working_on_value = last_task
         working_on_submit = ()=>
-            console.log 'working_on submit'
-            @setState dialog: @state.dialog + 1
+            if working_on_value
+                add_log_entry {active: true, date: Date.now(), task: working_on_value}
+            else
+                add_log_entry {active: true, date: Date.now()}
+
+            set_auto_hide_time Infinity
+            hide_window()
+            set_dialog 0
         working_on =
             useHighlight: true
             label: "I'm working on"
@@ -88,14 +231,35 @@ main_component = Component
             onClick: (event)->
                 if event.target.className != 'text_input'
                     working_on_submit()
+            onFocus: ->
+                set_auto_hide_time Infinity
+
+
+        are_you_working_message = 'Are you working?'
+
+        if log.length
+            time = (Date.now() - activity_state.date)
+            if time < 60000 # 1min
+                ftime = '\nless than 1 min'
+            else if time < 3600000 # 1hour
+                ftime = '\n' + Math.floor(time/60000) + ' min'
+            else
+                ftime = '\n' + Math.floor(time/3600000) + ' hours ' + (time % 3600000)*60 + ' min'
+
+            if activity_state.active
+                are_you_working_message = "
+                    You've been working for #{ftime}.\n\n
+                    Are you still working?"
+            else
+                are_you_working_message = "
+                    You've been distracted for #{ftime}.\n\n
+                    Did you start working?"
 
         dialogs = [
 
             [
-                message '''
-                    You've been distracted for 5 min.
-                    Did you start working?
-                    '''
+                message are_you_working_message
+
 
                 div
                     id: "yes_no_container"
@@ -106,11 +270,17 @@ main_component = Component
                     button.ui
                         label:'yes'
                         useHighlight:true
-                        onClick: => @setState dialog: @state.dialog+1
+                        onClick: =>
+                            @setState dialog: 1
+                            set_auto_hide_time 10
+
                     button.ui
                         label:'no'
                         useHighlight:true
                         title:"I'll ask you again in 5 minutes"
+                        onClick: =>
+                            add_log_entry {active: false, date: Date.now()}
+                            hide_window()
             ]
 
             [
@@ -128,10 +298,15 @@ main_component = Component
                     button.ui
                         label:"I don't know"
                         useHighlight:true
-                        fontSize: 20
-                message '''
-                    Time to auto-hide: 5s
-                    '''
+                        onClick: =>
+                            set_auto_hide_time Infinity
+                            @setState dialog: 0
+                            add_log_entry {active: true, date: Date.now()}
+                            hide_window()
+
+
+                message "Time to auto-hide: #{auto_hide_time} s",
+                    opacity: if auto_hide_time == Infinity then 0 else 1
             ]
         ]
 
@@ -148,8 +323,8 @@ main_component = Component
                 alignItems: 'flex-start'
                 top: '0'
                 left: 4
-                width: 'calc(100vw - 8px)'
-                height: 'calc(100vh - 8px)'
+                width: 'calc(100vw - 10px)'
+                height: 'calc(100vh - 13px)'
                 backgroundColor: theme.colors.light
                 borderRadius: theme.radius.r4
                 position: 'absolute'
@@ -158,15 +333,21 @@ main_component = Component
                 mixins.border3d 0.5
                 mixins.boxShadow theme.shadows.hard
             ]
-            dialog
+            if @state.render
+                dialog
+            else
+                null
             # text_input.ui working_on
-
-
 
 
 # Rendering main_component with ReactDOM in our HTML element ```app```
 render_all= ->
     ReactDOM.render main_component(), app
-
 render_all()
+
+save_last_date = ->
+    localStorage.myoulog_last_date = Date.now()
+
+setInterval save_last_date, 1
+
 window.addEventListener 'resize', render_all

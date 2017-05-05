@@ -21,10 +21,13 @@ if isElectron
     createWindow = (options)->
 
         options = options or
-            width: 1000#340
-            height: 800#200
+            width: 350
+            height: 200
             frame: false
             transparent: true
+            show: true
+            icon: path.join __dirname, 'static_files/images/icon.png'
+            title: 'MyouLog'
 
         # Create the browser window.
         win = new BrowserWindow options
@@ -41,7 +44,7 @@ if isElectron
 
         win.setMenuBarVisibility false
         # Open the DevTools.
-        win.webContents.openDevTools()
+        if isDebug then win.webContents.openDevTools()
 
         # Emitted when the window is closed.
         win.on 'closed', ()=>
