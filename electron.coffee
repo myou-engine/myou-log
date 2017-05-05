@@ -18,9 +18,9 @@ if isElectron
     # Keep a global reference of the window object, if you don't, the window will
     # be closed automatically when the JavaScript object is garbage collected.
 
-    createWindow = (options)->
+    createWindow = ()->
 
-        options = options or
+        options =
             width: 350
             height: 200
             frame: false
@@ -33,8 +33,7 @@ if isElectron
         win = new BrowserWindow options
 
         # Setting minimum size.
-        resizable = isDebug or options?.resizable
-        win.setResizable resizable
+        win.setResizable isDebug
         # and load the index.html of the app.
         win.loadURL url.format
             pathname: path.join __dirname, '/static_files/index.html'
