@@ -168,7 +168,7 @@ message = (message, custom_style) ->
 
 auto_hide_time = Infinity
 last_auto_hide_interval = null
-set_auto_hide_time = (time=10)->
+set_auto_hide_time = (time=10, callback=->)->
     clearInterval last_auto_hide_interval
     auto_hide_time = time
     if auto_hide_time == Infinity
@@ -180,6 +180,7 @@ set_auto_hide_time = (time=10)->
         if auto_hide_time == 0
             set_auto_hide_time Infinity
             set_dialog(0)
+            callback?()
             hide_window()
         render_all()
 
@@ -272,7 +273,9 @@ main_component = Component
                         useHighlight:true
                         onClick: =>
                             @setState dialog: 1
-                            set_auto_hide_time 10
+                            set_auto_hide_time 10, ->
+                                if not activity_state.active
+                                    add_log_entry {active: true, date: Date.now()}
 
                     button.ui
                         label:'no'
