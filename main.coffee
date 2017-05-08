@@ -1,7 +1,5 @@
 
 {MyoUI, Theme, mixins, css_utils, react_utils} = require 'myoui'
-# TODO: It is requiring local myoui from package.json but it is not commited.
-# current published myoui version (0.0.2) is not fully compatible with this app.
 
 # adding default css code to the document
 require 'myoui/default_fonts'
@@ -46,6 +44,7 @@ hide_window = ->
 
 show_window = ->
     ewin.show()
+    render_all?()
     set_inactivity_check?()
 
 show_window()
