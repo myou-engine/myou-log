@@ -11,13 +11,17 @@ theme = new Theme
 window.theme = theme
 # adding webkitAppRegion to default theme
 theme.UIElement.push {WebkitAppRegion: 'no-drag', cursor: 'pointer'}
-theme.UIElementContainer = (disabled, useHighlight)-> [
+theme.UIElementContainer = (disabled, useHighlight, forceHighlight)-> [
     if useHighlight
         ':hover': [
             mixins.boxShadow theme.shadows.smallSoft
             background: 'white'
-            color: 'black !important' # it's not working
             ]
+    if forceHighlight
+        [
+            mixins.boxShadow theme.shadows.smallSoft
+            background: 'white'
+        ]
     mixins.transition '250ms', 'background shadow width'
     if disabled
         opacity: 0.5
@@ -96,6 +100,7 @@ first_log = false
 
 add_log_entry = (entry)->
     new_entry = false
+    last_entry = log[log.length - 1] or {}
     if entry.active != activity_state.active
         activity_state.active = entry.active
         activity_state.date = entry.date
@@ -105,6 +110,9 @@ add_log_entry = (entry)->
     if entry.task? and entry.task != last_task
         last_task = entry.task
         localStorage.myoulog_last_task = last_task
+        new_entry = true
+
+    if entry.active and entry.task != last_entry.task
         new_entry = true
 
     if new_entry
@@ -208,10 +216,13 @@ main_component = Component
 
     getInitialState: ->
         dialog: 0
-
+        auto_highlight: true
     render: ->
+        auto_highlight = @state.auto_highlight and (auto_hide_time != Infinity)
+        last_entry = log[log.length - 1] or {}
         working_on_value = last_task
         working_on_submit = ()=>
+            @setState {auto_highlight:true}
             if working_on_value
                 add_log_entry {active: true, date: Date.now(), task: working_on_value}
             else
@@ -220,8 +231,11 @@ main_component = Component
             set_auto_hide_time Infinity
             hide_window()
             set_dialog 0
+
         working_on =
             useHighlight: true
+            forceHighlight: auto_highlight and last_entry.task
+            # autoFocus: true # it will execute set_auto_hide_time(10)
             label: "I'm working on"
             read: -> working_on_value
             onSubmit: working_on_submit
@@ -231,7 +245,10 @@ main_component = Component
                     working_on_submit()
             onFocus: ->
                 set_auto_hide_time Infinity
-
+            onMouseOver: =>
+                @setState {auto_highlight:false}
+            onMouseLeave: =>
+                @setState {auto_highlight:true}
 
         are_you_working_message = 'Are you working?'
 
@@ -255,6 +272,7 @@ main_component = Component
                 are_you_working_message = "
                     You've been distracted for #{ftime}.\n\n
                     Did you start working?"
+
 
         dialogs = [
 
@@ -301,14 +319,20 @@ main_component = Component
                     button.ui
                         label:"I don't know"
                         useHighlight:true
+                        forceHighlight: auto_highlight and not (last_entry.task)
+                        onMouseOver: =>
+                            @setState {auto_highlight:false}
+                        onMouseLeave: =>
+                            @setState {auto_highlight:true}
                         onClick: =>
                             set_auto_hide_time Infinity
                             @setState dialog: 0
                             add_log_entry {active: true, date: Date.now()}
                             hide_window()
+                            @setState {auto_highlight:true}
 
 
-                message "Time to auto-hide: #{auto_hide_time} s",
+                message "Time to auto-answer: #{auto_hide_time} s",
                     opacity: if auto_hide_time == Infinity then 0 else 1
             ]
         ]

@@ -16,7 +16,7 @@
     "create-react-class": "^15.5.2",
     "json-loader": "^0.5.4",
     "myou-engine": "^0.4.1",
-    "myoui": "^0.0.4",
+    "myoui": "^0.0.5",
     "raw-loader": "^0.5.1",
     "webpack": "^2.4.1"
   },
