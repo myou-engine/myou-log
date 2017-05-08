@@ -37,14 +37,12 @@ window.isDebug = ewin.isDebug
 
 hide_window_timeout = null
 hide_window = ->
-    disable_render()
-    hide_window_timeout = setTimeout ewin.hide, 200
+    ewin.hide()
     setTimeout show_window, 60000 * 5 # 5 min
 
 show_window = ->
     ewin.show()
     set_inactivity_check?()
-    enable_render?()
 
 show_window()
 
@@ -188,13 +186,14 @@ set_auto_hide_time = (time=10)->
     last_auto_hide_interval = setInterval auto_hide_interval, 1000
     render_all()
 
+# This function will be filled on componentWillMount
 set_dialog = ->
-enable_render = ->
-disable_render = ->
 
+# This is to know the value of the current
+# active dialog out of the component render function
 current_dialog = 0
-main_component = Component
 
+main_component = Component
     componentDidUpdate: (cosas)->
         current_dialog = @state.dialog
 
@@ -206,18 +205,10 @@ main_component = Component
                 set_inactivity_check()
             @setState {dialog}
 
-        enable_render = =>
-            @setState {render:true}
-
-        disable_render = =>
-            @setState {render:false}
-
     getInitialState: ->
         dialog: 0
-        render: true
 
     render: ->
-
         working_on_value = last_task
         working_on_submit = ()=>
             if working_on_value
@@ -342,10 +333,7 @@ main_component = Component
                 mixins.border3d 0.5
                 mixins.boxShadow theme.shadows.hard
             ]
-            if @state.render
-                dialog
-            else
-                null
+            dialog
             # text_input.ui working_on
 
 
