@@ -1,3 +1,6 @@
+# dev options
+autoOpenDevTools = false
+
 fs = require 'fs'
 path = require 'path'
 
@@ -6,6 +9,7 @@ app_proccess = process.execPath.split(path.sep).pop()
 console.log app_proccess
 isDebug = /^electron/.test app_proccess
 isElectron = /^electron|myou-log/.test  app_proccess
+
 
 if isElectron
     {app, BrowserWindow} = require 'electron'
@@ -43,7 +47,7 @@ if isElectron
 
         win.setMenuBarVisibility false
         # Open the DevTools.
-        if isDebug then win.webContents.openDevTools()
+        if isDebug and autoOpenDevTools then win.webContents.openDevTools()
 
         # Emitted when the window is closed.
         win.on 'closed', ()=>
