@@ -29,8 +29,8 @@ if isElectron
         options =
             width: 350
             height: 200
-            frame: false
-            transparent: if platform == 'linux' then false else true
+            frame: if is_linux then true else false
+            transparent: if is_linux then false else true
             show: true
             icon: path.join __dirname, 'static_files/images/icon.png'
             title: 'MyouLog'
