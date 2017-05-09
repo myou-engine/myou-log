@@ -37,12 +37,15 @@ window.ewin = ewin = electron.remote.getCurrentWindow()
 ewin.setAlwaysOnTop true
 window.isDebug = ewin.isDebug
 
-hide_window_timeout = null
+show_window_timeout = null
 hide_window = ->
     ewin.hide()
-    setTimeout show_window, 60000 * 5 # 5 min
+    console.log 'Set timeout to show window in 5 min.'
+    show_window_timeout = setTimeout show_window, 60000 * 5 # 5 min
 
 show_window = ->
+    clearTimeout show_window_timeout
+    console.log 'Disabled timeout.'
     ewin.show()
     render_all?()
     set_inactivity_check?()
@@ -79,7 +82,7 @@ tray.setContextMenu trayMenu
 tray.on 'click', ->
     show_window()
 ewin.on 'restore', ->
-    clearTimeout hide_window_timeout
+    clearTimeout show_window_timeout
     if current_dialog == 1
         set_auto_hide_time 10
 ewin.on 'minimize', ->
@@ -360,7 +363,6 @@ main_component = Component
                 mixins.boxShadow theme.shadows.hard
             ]
             dialog
-            # text_input.ui working_on
 
 
 # Rendering main_component with ReactDOM in our HTML element ```app```
