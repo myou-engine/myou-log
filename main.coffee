@@ -43,7 +43,9 @@ hide_window = ->
     console.log 'Set timeout to show window in 5 min.'
     show_window_timeout = setTimeout show_window, 60000 * 5 # 5 min
 
+show_window_time = 0
 show_window = ->
+    show_window_time = Date.now()
     ewin.setAlwaysOnTop true
     clearTimeout show_window_timeout
     console.log 'Disabled timeout.'
@@ -140,11 +142,13 @@ last_check_inactivity_interval = null
 set_inactivity_check = ->
     clearInterval last_check_inactivity_interval
     check_inactivity = ->
+        time = (Date.now() - activity_state.date)
         if ewin.isVisible() and current_dialog == 0
             add_log_entry {active:false, date:Date.now()}
             render_all()
 
-    last_check_inactivity_interval = setInterval check_inactivity, 60000
+    last_check_inactivity_interval = setInterval check_inactivity, 60000 * 5
+
 
 # Creating instances of myoui elements
 text_input = new myoui.TextInput
@@ -198,6 +202,18 @@ set_auto_hide_time = (time=10, callback=->)->
 
     last_auto_hide_interval = setInterval auto_hide_interval, 1000
     render_all()
+
+format_time = (time)->
+    if time < 60000 # 1min
+        return '\nless than 1 min'
+    else if time < 3600000 # 1hour
+        return '\n' + Math.floor(time/60000) + ' min'
+    else
+        hours = time/3600000
+        only_hours = Math.floor(hours)
+        only_min = Math.floor((hours - only_hours) * 60)
+        return '\n' + only_hours + ' hours ' + only_min + ' min'
+
 
 # This function will be filled on componentWillMount
 set_dialog = ->
@@ -256,25 +272,25 @@ main_component = Component
 
         are_you_working_message = 'Are you working?'
 
+        date_now = Date.now()
+        time = (date_now - activity_state.date)
+        time_since_show_window = date_now - show_window_time
+
         if log.length
-            time = (Date.now() - activity_state.date)
-            if time < 60000 # 1min
-                ftime = '\nless than 1 min'
-            else if time < 3600000 # 1hour
-                ftime = '\n' + Math.floor(time/60000) + ' min'
-            else
-                hours = time/3600000
-                only_hours = Math.floor(hours)
-                only_min = Math.floor((hours - only_hours) * 60)
-                ftime = '\n' + only_hours + ' hours ' + only_min + ' min'
+
 
             if activity_state.active
                 are_you_working_message = "
-                    You've been working for #{ftime}.\n\n
+                    You've been working for #{format_time(time)}.\n\n
                     Are you still working?"
+                if time_since_show_window > 60000
+                    are_you_working_message = "
+                        It looks like you've \nbeen distracted for #{format_time(time_since_show_window)}.\n\n
+                        Were you working?
+                    "
             else
                 are_you_working_message = "
-                    You've been distracted for #{ftime}.\n\n
+                    You've been distracted for #{format_time(time)}.\n\n
                     Did you start working?"
 
 
@@ -282,8 +298,6 @@ main_component = Component
 
             [
                 message are_you_working_message
-
-
                 div
                     id: "yes_no_container"
                     style: [
@@ -304,7 +318,7 @@ main_component = Component
                         useHighlight:true
                         title:"I'll ask you again in 5 minutes"
                         onClick: =>
-                            add_log_entry {active: false, date: Date.now()}
+                            add_log_entry {active: false, date: show_window_time}
                             hide_window()
             ]
 
@@ -376,5 +390,6 @@ save_last_date = ->
     localStorage.myoulog_last_date = Date.now()
 
 setInterval save_last_date, 1
+setInterval render_all, 1000
 
 window.addEventListener 'resize', render_all
