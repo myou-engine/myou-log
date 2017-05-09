@@ -78,14 +78,23 @@ trayMenuTemplate = [
        label: 'Clear log and quit',
        click: ->
           clear_log?()
+          localStorage.myoulog_win_position = JSON.stringify ewin.getPosition()
           ewin.close()
+
     },
     {
        label: 'Quit',
        click: ->
-          ewin.close()
+           localStorage.myoulog_win_position = JSON.stringify ewin.getPosition()
+           ewin.close()
+
     }
 ]
+
+win_position = localStorage.myoulog_win_position
+if win_position
+    win_position = JSON.parse win_position
+    ewin.setPosition win_position[0], win_position[1]
 
 window.trayMenu = Menu.buildFromTemplate trayMenuTemplate
 if tray?
