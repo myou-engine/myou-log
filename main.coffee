@@ -253,6 +253,7 @@ main_component = Component
             set_dialog 0
 
         working_on =
+            autoFocus: true
             useHighlight: true
             forceHighlight: auto_highlight and last_entry.task
             # autoFocus: true # it will execute set_auto_hide_time(10)
@@ -263,8 +264,8 @@ main_component = Component
             onClick: (event)->
                 if event.target.className != 'text_input'
                     working_on_submit()
-            onFocus: ->
-                set_auto_hide_time Infinity
+                else
+                    set_auto_hide_time Infinity
             onMouseOver: =>
                 @setState {auto_highlight:false}
             onMouseLeave: =>
@@ -277,8 +278,6 @@ main_component = Component
         time_since_show_window = date_now - show_window_time
 
         if log.length
-
-
             if activity_state.active
                 are_you_working_message = "
                     You've been working for #{format_time(time)}.\n\n
@@ -293,9 +292,7 @@ main_component = Component
                     You've been distracted for #{format_time(time)}.\n\n
                     Did you start working?"
 
-
         dialogs = [
-
             [
                 message are_you_working_message
                 div
