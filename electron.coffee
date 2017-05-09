@@ -1,9 +1,11 @@
 # dev options
-autoOpenDevTools = false
+autoOpenDevTools = true
 
 fs = require 'fs'
 path = require 'path'
 
+platform = process.platform
+is_linux = platform == 'linux'
 app_proccess = process.execPath.split(path.sep).pop()
 
 console.log app_proccess
@@ -28,7 +30,7 @@ if isElectron
             width: 350
             height: 200
             frame: false
-            transparent: true
+            transparent: if platform == 'linux' then false else true
             show: true
             icon: path.join __dirname, 'static_files/images/icon.png'
             title: 'MyouLog'

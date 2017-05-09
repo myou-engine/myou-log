@@ -5,6 +5,9 @@
 require 'myoui/default_fonts'
 require 'myoui/default_animations'
 
+platform = process.platform
+is_linux = platform == 'linux'
+
 theme = new Theme
 window.theme = theme
 # adding webkitAppRegion to default theme
@@ -35,6 +38,7 @@ myoui = new MyoUI theme
 electron = require 'electron'
 window.ewin = ewin = electron.remote.getCurrentWindow()
 ewin.setAlwaysOnTop true
+ewin.setVisibleOnAllWorkspaces true
 window.isDebug = ewin.isDebug
 
 show_window_timeout = null
@@ -364,16 +368,23 @@ main_component = Component
                 justifyContent: 'center'
                 alignItems: 'flex-start'
                 top: '0'
-                left: 4
-                width: 'calc(100vw - 10px)'
-                height: 'calc(100vh - 13px)'
+                if is_linux then [
+                    left: 0
+                    width: '100vw'
+                    height: '100vh'
+                    borderRadius: 0
+                ] else [
+                    left: 4
+                    width: 'calc(100vw - 10px)'
+                    height: 'calc(100vh - 13px)'
+                    borderRadius: theme.radius.r4
+                    mixins.border3d 0.5
+                    mixins.boxShadow theme.shadows.hard
+                ]
                 backgroundColor: theme.colors.light
-                borderRadius: theme.radius.r4
                 position: 'absolute'
                 overflowX: 'hidden'
                 WebkitAppRegion: 'drag'
-                mixins.border3d 0.5
-                mixins.boxShadow theme.shadows.hard
             ]
             dialog
 
