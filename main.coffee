@@ -8,6 +8,8 @@ require 'myoui/default_animations'
 platform = process.platform
 is_linux = platform == 'linux'
 
+snd = new Audio('sounds/notification.mp3')
+
 theme = new Theme
 window.theme = theme
 # adding webkitAppRegion to default theme
@@ -45,7 +47,11 @@ show_window_timeout = null
 hide_window = ->
     ewin.hide()
     console.log 'Set timeout to show window in 5 min.'
-    show_window_timeout = setTimeout show_window, 60000 * 5 # 5 min
+    show = ->
+        show_window()
+        ui_alarm()
+
+    show_window_timeout = setTimeout show, 60000 * 5 # 5 min
 
 show_window_time = 0
 show_window = ->
@@ -221,7 +227,7 @@ format_time = (time)->
 
 # This function will be filled on componentWillMount
 set_dialog = ->
-
+ui_alarm = ->
 # This is to know the value of the current
 # active dialog out of the component render function
 current_dialog = 0
@@ -232,6 +238,14 @@ main_component = Component
 
     componentWillMount: ->
         current_dialog = @state.dialog
+
+        ui_alarm = (duration=1000)=>
+            @setState {alarm:true}
+            snd.play()
+            disable_alarm = =>
+                @setState {alarm:false}
+            setTimeout disable_alarm, duration
+
         set_inactivity_check()
         set_dialog = (dialog=0)=>
             if dialog == 0
@@ -304,6 +318,7 @@ main_component = Component
                     style: [
                         mixins.rowFlex
                         alignSelf: 'center'
+
                     ]
                     button.ui
                         label:'yes'
@@ -368,6 +383,11 @@ main_component = Component
                 justifyContent: 'center'
                 alignItems: 'flex-start'
                 top: '0'
+                backgroundColor: if @state.alarm then 'rgb(194, 228, 157)' else theme.colors.light
+                position: 'absolute'
+                overflowX: 'hidden'
+                WebkitAppRegion: 'drag'
+                mixins.transition '0.5s', 'background-color'
                 if is_linux then [
                     left: 0
                     width: '100vw'
@@ -381,10 +401,7 @@ main_component = Component
                     mixins.border3d 0.5
                     mixins.boxShadow theme.shadows.hard
                 ]
-                backgroundColor: theme.colors.light
-                position: 'absolute'
-                overflowX: 'hidden'
-                WebkitAppRegion: 'drag'
+
             ]
             dialog
 
