@@ -44,6 +44,7 @@ hide_window = ->
     show_window_timeout = setTimeout show_window, 60000 * 5 # 5 min
 
 show_window = ->
+    ewin.setAlwaysOnTop true
     clearTimeout show_window_timeout
     console.log 'Disabled timeout.'
     ewin.show()
@@ -82,6 +83,7 @@ tray.setContextMenu trayMenu
 tray.on 'click', ->
     show_window()
 ewin.on 'restore', ->
+    ewin.setAlwaysOnTop true
     clearTimeout show_window_timeout
     if current_dialog == 1
         set_auto_hide_time 10
