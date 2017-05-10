@@ -1,13 +1,60 @@
-{react_utils, theme, mixins, components, sounds} = require './UI/common.coffee'
+log = require './log'
 
-platform = process.platform
-is_linux = platform == 'linux'
+{react_utils, theme, mixins, components, sounds} = require './common_ui.coffee'
+# MyoUI includes some React utils.
+{Component, React, ReactDOM} = react_utils
+{div} = React.DOM
+# "Component" returns a radium component which will allow us
+# to use arrays and objects combined in the same style property.
+
+is_linux = process.platform == 'linux'
 
 electron = require 'electron'
-window.ewin = ewin = electron.remote.getCurrentWindow()
+ewin = electron.remote.getCurrentWindow()
+
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
-window.isDebug = ewin.isDebug
+
+{Tray, Menu} = electron.remote
+path = require 'path'
+trayMenuTemplate = [
+
+    {
+       label: 'Show app',
+       click: ->
+          show_window()
+    }
+    {
+       label: 'Clear log and quit',
+       click: ->
+          clear_log?()
+          localStorage.myoulog_win_position = JSON.stringify ewin.getPosition()
+          tray.destroy()
+          ewin.close()
+
+    }
+    {
+       label: 'Quit',
+       click: ->
+           localStorage.myoulog_win_position = JSON.stringify ewin.getPosition()
+           tray.destroy()
+           ewin.close()
+    }
+]
+
+trayMenu = Menu.buildFromTemplate trayMenuTemplate
+ewin.app.tray?.destroy()
+tray = ewin.app.tray = new Tray __dirname + '/../static_files/images/icon.png'
+tray.setContextMenu trayMenu
+tray.on 'click', ->
+    show_window()
+ewin.on 'minimize', ->
+    hide_window()
+
+win_position = localStorage.myoulog_win_position
+if win_position
+    win_position = JSON.parse win_position
+    ewin.setPosition win_position[0], win_position[1]
 
 show_window_timeout = null
 hide_window = ->
@@ -16,7 +63,6 @@ hide_window = ->
     show = ->
         show_window()
         ui_alarm()
-
     show_window_timeout = setTimeout show, 60000 * 5 # 5 min
 
 show_window_time = 0
@@ -31,78 +77,16 @@ show_window = ->
 
 show_window()
 
-{Tray, Menu} = electron.remote
-path = require 'path'
-trayMenuTemplate = [
-
-    {
-       label: 'Show app',
-       click: ->
-          show_window()
-    },
-    {
-       label: 'Clear log and quit',
-       click: ->
-          clear_log?()
-          localStorage.myoulog_win_position = JSON.stringify ewin.getPosition()
-          tray.destroy()
-          ewin.close()
-
-    },
-    {
-       label: 'Quit',
-       click: ->
-           localStorage.myoulog_win_position = JSON.stringify ewin.getPosition()
-           tray.destroy()
-           ewin.close()
-
-    }
-]
-
-window.trayMenu = Menu.buildFromTemplate trayMenuTemplate
-ewin.app.tray?.destroy()
-window.tray = ewin.app.tray = new Tray __dirname + '/../static_files/images/icon.png'
-tray.setContextMenu trayMenu
-tray.on 'click', ->
-    show_window()
-ewin.on 'restore', ->
-    ewin.setAlwaysOnTop true
-    clearTimeout show_window_timeout
-    if current_dialog == 1
-        set_auto_hide_time 10
-ewin.on 'minimize', ->
-    hide_window()
-
-win_position = localStorage.myoulog_win_position
-if win_position
-    win_position = JSON.parse win_position
-    ewin.setPosition win_position[0], win_position[1]
-
-MyouLog = require './myou_log'
-old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
-myou_log = new MyouLog old_log
-log = window.log = myou_log.entries
-if localStorage.myoulog_last_date?
-    last_date = parseInt localStorage.myoulog_last_date
-    myou_log.add_log_entry {active:false, date:last_date}
-
 last_check_inactivity_interval = null
 set_inactivity_check = ->
     clearInterval last_check_inactivity_interval
     check_inactivity = ->
-        time = (Date.now() - myou_log.last_activity_change_date)
+        time = (Date.now() - log.last_activity_change_date)
         if ewin.isVisible() and current_dialog == 0
-            myou_log.add_log_entry {active:false, date:show_window_time}
+            log.new_entry {active:false, date:show_window_time}
             render_all()
 
     last_check_inactivity_interval = setInterval check_inactivity, 60000 * 5
-
-
-# MyoUI includes some React utils.
-{Component, React, ReactDOM} = react_utils
-{div} = React.DOM
-# "Component" returns a radium component which will allow us
-# to use arrays and objects combined in the same style property.
 
 auto_hide_time = Infinity
 last_auto_hide_interval = null
@@ -153,7 +137,7 @@ main_component = Component
 
         ui_alarm = (duration=1000)=>
             @setState {alarm:true}
-            snd.play()
+            sounds.notification.play()
             disable_alarm = =>
                 @setState {alarm:false}
             setTimeout disable_alarm, duration
@@ -170,16 +154,16 @@ main_component = Component
     render: ->
         auto_highlight = @state.auto_highlight and (auto_hide_time != Infinity)
         if not @state.writing_working_on
-            working_on_value = myou_log.last_task
+            working_on_value = log.last_task
         working_on_submit = ()=>
             @setState {
                 auto_highlight: true
                 writing_working_on: false
             }
             if working_on_value
-                myou_log.add_log_entry {active: true, date: Date.now(), task: working_on_value}
+                log.new_entry {active: true, date: Date.now(), task: working_on_value}
             else
-                myou_log.add_log_entry {active: true, date: Date.now()}
+                log.new_entry {active: true, date: Date.now()}
 
             set_auto_hide_time Infinity
             hide_window()
@@ -188,11 +172,11 @@ main_component = Component
         are_you_working_message = 'Are you working?'
 
         date_now = Date.now()
-        time = (date_now - myou_log.last_activity_change_date)
+        time = (date_now - log.last_activity_change_date)
         time_since_show_window = date_now - show_window_time
 
-        if log.length
-            if myou_log.is_active
+        if log.entries.length
+            if log.is_active
                 are_you_working_message = "
                     You've been working for #{format_time(time)}.\n\n
                     Are you still working?"
@@ -222,15 +206,15 @@ main_component = Component
                         onClick: =>
                             @setState dialog: 1
                             set_auto_hide_time 10, ->
-                                if not myou_log.is_active
-                                    myou_log.add_log_entry {active: true, date: Date.now()}
+                                if not log.is_active
+                                    log.new_entry {active: true, date: Date.now()}
 
                     components.button
                         label:'no'
                         useHighlight:true
                         title:"I'll ask you again in 5 minutes"
                         onClick: =>
-                            myou_log.add_log_entry {active: false, date: show_window_time}
+                            log.new_entry {active: false, date: show_window_time}
                             hide_window()
             ]
 
@@ -248,7 +232,7 @@ main_component = Component
                     components.text_input
                         autoFocus: true
                         useHighlight: true
-                        forceHighlight: auto_highlight and myou_log.last_entry.task
+                        forceHighlight: auto_highlight and log.last_entry.task
                         label: "I'm working on"
                         read: -> working_on_value
                         onSubmit: working_on_submit
@@ -269,7 +253,7 @@ main_component = Component
                     components.button
                         label:"I don't know"
                         useHighlight:true
-                        forceHighlight: auto_highlight and not (myou_log.last_entry.task)
+                        forceHighlight: auto_highlight and not (log.last_entry.task)
                         onMouseOver: =>
                             @setState {auto_highlight:false}
                         onMouseLeave: =>
@@ -277,7 +261,7 @@ main_component = Component
                         onClick: =>
                             set_auto_hide_time Infinity
                             @setState dialog: 0
-                            myou_log.add_log_entry {active: true, date: Date.now()}
+                            log.new_entry {active: true, date: Date.now()}
                             hide_window()
                             @setState {auto_highlight:true}
 
@@ -326,12 +310,10 @@ main_component = Component
 app = document.getElementById 'app'
 render_all= ->
     ReactDOM.render main_component(), app
-render_all()
 
-save_last_date = ->
-    localStorage.myoulog_last_date = Date.now()
+log.load_promise.then ->
+    render_all()
 
-setInterval save_last_date, 1
 setInterval render_all, 1000
 
 window.addEventListener 'resize', render_all

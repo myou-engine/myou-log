@@ -5,12 +5,12 @@ class MyouLog
         @is_active = false
         @last_activity_change_date = 0
         for e in entries
-            @add_log_entry e
+            @new_entry e
 
     clear_log: ->
         @entries.clear()
 
-    add_log_entry: (entry)->
+    new_entry: (entry)->
         if entry.active != @active
             @is_active = entry.active
             @last_activity_change_date = entry.date
