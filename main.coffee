@@ -113,57 +113,26 @@ ewin.on 'minimize', ->
 
 app = document.getElementById 'app'
 
-log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
+MyouLog = require './myou_log'
+old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
+
+myou_log = new MyouLog old_log
+log = myou_log.entries
+
 if isDebug
     window.log = log
 
-activity_state = (localStorage.myoulog_activity_state? and
-    JSON.parse(localStorage.myoulog_activity_state)) or
-    {active: false, date: Date.now()}
-last_task = localStorage.myoulog_last_task or ''
-first_log = false
-
-add_log_entry = (entry)->
-    new_entry = false
-    last_entry = log[log.length - 1] or {}
-    if entry.active != activity_state.active
-        activity_state.active = entry.active
-        activity_state.date = entry.date
-        localStorage.myoulog_activity_state = JSON.stringify activity_state
-        new_entry = true
-
-    if entry.task? and entry.task != last_task
-        last_task = entry.task
-        localStorage.myoulog_last_task = last_task
-        new_entry = true
-
-    if entry.active and entry.task != last_entry.task
-        new_entry = true
-
-    if new_entry
-        first_log = true
-        console.log 'New log entry:', entry
-        log.push entry
-        localStorage.myoulog = JSON.stringify log
-
-
-window.clear_log = ->
-    localStorage.removeItem 'myoulog'
-    localStorage.removeItem 'myoulog_activity_state'
-    localStorage.removeItem 'myoulog_last_task'
-    localStorage.removeItem 'myoulog_last_date'
-
 if localStorage.myoulog_last_date?
     last_date = parseInt localStorage.myoulog_last_date
-    add_log_entry {active:false, date:last_date}
+    myou_log.add_log_entry {active:false, date:last_date}
 
 last_check_inactivity_interval = null
 set_inactivity_check = ->
     clearInterval last_check_inactivity_interval
     check_inactivity = ->
-        time = (Date.now() - activity_state.date)
+        time = (Date.now() - myou_log.last_activity_change_date)
         if ewin.isVisible() and current_dialog == 0
-            add_log_entry {active:false, date:show_window_time}
+            myou_log.add_log_entry {active:false, date:show_window_time}
             render_all()
 
     last_check_inactivity_interval = setInterval check_inactivity, 60000 * 5
@@ -266,18 +235,17 @@ main_component = Component
         auto_highlight: true
     render: ->
         auto_highlight = @state.auto_highlight and (auto_hide_time != Infinity)
-        last_entry = log[log.length - 1] or {}
         if not @state.writing_working_on
-            working_on_value = last_task
+            working_on_value = myou_log.last_task
         working_on_submit = ()=>
             @setState {
                 auto_highlight: true
                 writing_working_on: false
             }
             if working_on_value
-                add_log_entry {active: true, date: Date.now(), task: working_on_value}
+                myou_log.add_log_entry {active: true, date: Date.now(), task: working_on_value}
             else
-                add_log_entry {active: true, date: Date.now()}
+                myou_log.add_log_entry {active: true, date: Date.now()}
 
             set_auto_hide_time Infinity
             hide_window()
@@ -286,11 +254,11 @@ main_component = Component
         are_you_working_message = 'Are you working?'
 
         date_now = Date.now()
-        time = (date_now - activity_state.date)
+        time = (date_now - myou_log.last_activity_change_date)
         time_since_show_window = date_now - show_window_time
 
         if log.length
-            if activity_state.active
+            if myou_log.is_active
                 are_you_working_message = "
                     You've been working for #{format_time(time)}.\n\n
                     Are you still working?"
@@ -320,15 +288,15 @@ main_component = Component
                         onClick: =>
                             @setState dialog: 1
                             set_auto_hide_time 10, ->
-                                if not activity_state.active
-                                    add_log_entry {active: true, date: Date.now()}
+                                if not myou_log.is_active
+                                    myou_log.add_log_entry {active: true, date: Date.now()}
 
                     button.ui
                         label:'no'
                         useHighlight:true
                         title:"I'll ask you again in 5 minutes"
                         onClick: =>
-                            add_log_entry {active: false, date: show_window_time}
+                            myou_log.add_log_entry {active: false, date: show_window_time}
                             hide_window()
             ]
 
@@ -346,7 +314,7 @@ main_component = Component
                     text_input.ui
                         autoFocus: true
                         useHighlight: true
-                        forceHighlight: auto_highlight and last_entry.task
+                        forceHighlight: auto_highlight and myou_log.last_entry.task
                         label: "I'm working on"
                         read: -> working_on_value
                         onSubmit: working_on_submit
@@ -367,7 +335,7 @@ main_component = Component
                     button.ui
                         label:"I don't know"
                         useHighlight:true
-                        forceHighlight: auto_highlight and not (last_entry.task)
+                        forceHighlight: auto_highlight and not (myou_log.last_entry.task)
                         onMouseOver: =>
                             @setState {auto_highlight:false}
                         onMouseLeave: =>
@@ -375,7 +343,7 @@ main_component = Component
                         onClick: =>
                             set_auto_hide_time Infinity
                             @setState dialog: 0
-                            add_log_entry {active: true, date: Date.now()}
+                            myou_log.add_log_entry {active: true, date: Date.now()}
                             hide_window()
                             @setState {auto_highlight:true}
 
