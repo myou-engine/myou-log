@@ -267,9 +267,13 @@ main_component = Component
     render: ->
         auto_highlight = @state.auto_highlight and (auto_hide_time != Infinity)
         last_entry = log[log.length - 1] or {}
-        working_on_value = last_task
+        if not @state.writing_working_on
+            working_on_value = last_task
         working_on_submit = ()=>
-            @setState {auto_highlight:true}
+            @setState {
+                auto_highlight: true
+                writing_working_on: false
+            }
             if working_on_value
                 add_log_entry {active: true, date: Date.now(), task: working_on_value}
             else
@@ -278,25 +282,6 @@ main_component = Component
             set_auto_hide_time Infinity
             hide_window()
             set_dialog 0
-
-        working_on =
-            autoFocus: true
-            useHighlight: true
-            forceHighlight: auto_highlight and last_entry.task
-            # autoFocus: true # it will execute set_auto_hide_time(10)
-            label: "I'm working on"
-            read: -> working_on_value
-            onSubmit: working_on_submit
-            onChange: (new_value)-> working_on_value = new_value
-            onClick: (event)->
-                if event.target.className != 'text_input'
-                    working_on_submit()
-                else
-                    set_auto_hide_time Infinity
-            onMouseOver: =>
-                @setState {auto_highlight:false}
-            onMouseLeave: =>
-                @setState {auto_highlight:true}
 
         are_you_working_message = 'Are you working?'
 
@@ -358,7 +343,27 @@ main_component = Component
                         alignSelf: 'center'
                         width: 'calc(100% - 30px)'
                     ]
-                    text_input.ui working_on
+                    text_input.ui
+                        autoFocus: true
+                        useHighlight: true
+                        forceHighlight: auto_highlight and last_entry.task
+                        label: "I'm working on"
+                        read: -> working_on_value
+                        onSubmit: working_on_submit
+                        onChange: (new_value)=>
+                            working_on_value = new_value
+                        onClick: (event)=>
+                            if event.target.className != 'text_input'
+                                @setState {writing_working_on:true}
+                                working_on_submit()
+                            else
+                                @setState {writing_working_on:true}
+                                set_auto_hide_time Infinity
+                        onMouseOver: =>
+                            @setState {auto_highlight:false}
+                        onMouseLeave: =>
+                            @setState {auto_highlight:true}
+
                     button.ui
                         label:"I don't know"
                         useHighlight:true
