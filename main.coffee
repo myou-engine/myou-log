@@ -163,7 +163,7 @@ set_inactivity_check = ->
     check_inactivity = ->
         time = (Date.now() - activity_state.date)
         if ewin.isVisible() and current_dialog == 0
-            add_log_entry {active:false, date:Date.now()}
+            add_log_entry {active:false, date:show_window_time}
             render_all()
 
     last_check_inactivity_interval = setInterval check_inactivity, 60000 * 5
@@ -301,7 +301,7 @@ main_component = Component
                     "
             else
                 are_you_working_message = "
-                    You've been distracted for #{format_time(time)}.\n\n
+                    You've been distracted for #{format_time(time_since_show_window)}.\n\n
                     Did you start working?"
 
         dialogs = [
