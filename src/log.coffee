@@ -59,7 +59,7 @@ log.load_promise = new Promise (resolve, reject) ->
             log.add_multiple_entries old_log
         else
             console.log 'Reading log from file.'
-            old_log = JSON.parse data
+            old_log = JSON.parse data or '[]'
             # loading without save because, the log will not have any changes.
             log.add_multiple_entries old_log, false
 

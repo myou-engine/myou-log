@@ -3,6 +3,8 @@ class MyouLog
         @entries = []
         @last_entry = null
         @is_active = false
+        @last_task = null
+        @last_entry = null
         @last_activity_change_date = 0
         for e in entries
             @new_entry e

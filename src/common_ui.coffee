@@ -31,6 +31,7 @@ theme.UIElementContainer = (disabled, useHighlight, forceHighlight)-> [
     borderRadius: theme.radius.r3
 ]
 
+theme.colors.green = 'rgb(194, 228, 157)'
 myoui = new MyoUI theme
 
 # Creating instances of myoui elements

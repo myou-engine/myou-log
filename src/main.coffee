@@ -118,7 +118,7 @@ ui_alarm = ->
 # This is to know the value of the current
 # active dialog out of the component render function
 current_dialog = 0
-
+working_on_value = ''
 main_component = Component
     componentDidUpdate: (cosas)->
         current_dialog = @state.dialog
@@ -228,14 +228,14 @@ main_component = Component
                         read: -> working_on_value
                         onSubmit: working_on_submit
                         onChange: (new_value)=>
+                            @setState {writing_working_on:true}
                             working_on_value = new_value
                         onClick: (event)=>
                             if event.target.className != 'text_input'
-                                @setState {writing_working_on:true}
                                 working_on_submit()
                             else
-                                @setState {writing_working_on:true}
                                 set_auto_hide_time Infinity
+
                         onMouseOver: =>
                             @setState {auto_highlight:false}
                         onMouseLeave: =>
@@ -274,7 +274,7 @@ main_component = Component
                 justifyContent: 'center'
                 alignItems: 'flex-start'
                 top: '0'
-                backgroundColor: if @state.alarm then 'rgb(194, 228, 157)' else theme.colors.light
+                backgroundColor: if @state.alarm then theme.colors.green else theme.colors.light
                 position: 'absolute'
                 overflowX: 'hidden'
                 WebkitAppRegion: 'drag'
