@@ -1,5 +1,5 @@
 # dev options
-autoOpenDevTools = true
+autoOpenDevTools = false
 
 fs = require 'fs'
 path = require 'path'
@@ -34,6 +34,7 @@ if isElectron
             show: true
             icon: path.join __dirname, 'static_files/images/icon.png'
             title: 'MyouLog'
+            skipTaskbar: true
 
         # Create the browser window.
         win = new BrowserWindow options
