@@ -11,7 +11,7 @@ is_linux = process.platform == 'linux'
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
-
+window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
 
@@ -23,15 +23,6 @@ trayMenuTemplate = [
        label: 'Show app',
        click: ->
           show_window()
-    }
-    {
-       label: 'Clear log and quit',
-       click: ->
-          clear_log?()
-          localStorage.myoulog_win_position = JSON.stringify ewin.getPosition()
-          tray.destroy()
-          ewin.close()
-
     }
     {
        label: 'Quit',
@@ -232,7 +223,7 @@ main_component = Component
                     components.text_input
                         autoFocus: true
                         useHighlight: true
-                        forceHighlight: auto_highlight and log.last_entry.task
+                        forceHighlight: auto_highlight and log.last_entry?.task
                         label: "I'm working on"
                         read: -> working_on_value
                         onSubmit: working_on_submit
@@ -253,7 +244,7 @@ main_component = Component
                     components.button
                         label:"I don't know"
                         useHighlight:true
-                        forceHighlight: auto_highlight and not (log.last_entry.task)
+                        forceHighlight: auto_highlight and not (log.last_entry?.task)
                         onMouseOver: =>
                             @setState {auto_highlight:false}
                         onMouseLeave: =>

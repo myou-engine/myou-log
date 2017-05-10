@@ -8,8 +8,9 @@ class Log
         @last_activity_change_date = 0
         @add_multiple_entries entries, false
 
-    clear_log: ->
-        @entries.clear()
+    clear: ->
+        @entries = []
+        @save()
 
     save: ->
         fs.writeFile 'log', JSON.stringify(@entries), (err)->
