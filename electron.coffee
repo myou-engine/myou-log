@@ -24,7 +24,7 @@ if isElectron
     # Keep a global reference of the window object, if you don't, the window will
     # be closed automatically when the JavaScript object is garbage collected.
 
-    createWindow = ()->
+    create_main_window = ()->
 
         options =
             width: 350
@@ -43,7 +43,7 @@ if isElectron
         win.setResizable isDebug
         # and load the index.html of the app.
         win.loadURL url.format
-            pathname: path.join __dirname, '/static_files/index.html'
+            pathname: path.join __dirname, '/static_files/main_window.html'
             protocol: 'file:'
             slashes: true
 
@@ -60,7 +60,6 @@ if isElectron
             win.tray?.destroy()
             win = null
 
-        win.createWindow = createWindow
         win.app = app
         win.isDebug = isDebug
 
@@ -68,7 +67,7 @@ if isElectron
     # This method will be called when Electron has finished
     # initialization and is ready to create browser windows.
     # Some APIs can only be used after this event occurs.
-    app.on 'ready', -> createWindow()
+    app.on 'ready', -> create_main_window()
 
     # Quit when all windows are closed.
     app.on 'window-all-closed', ()=>
@@ -81,7 +80,7 @@ if isElectron
         # On macOS it's common to re-create a window in the app when the
         # dock icon is clicked and there are no other windows open.
         if not win?
-            createWindow()
+            create_main_window()
 
     # In this file you can include the rest of your app's specific main process
     # code. You can also put them in separate files and require them here.
