@@ -1,42 +1,8 @@
-
-{MyoUI, Theme, mixins, css_utils, react_utils} = require 'myoui'
-
-# adding default css code to the document
-require 'myoui/default_fonts'
-require 'myoui/default_animations'
+{react_utils, theme, mixins, components, sounds} = require './UI/common.coffee'
 
 platform = process.platform
 is_linux = platform == 'linux'
 
-snd = new Audio('sounds/notification.mp3')
-
-theme = new Theme
-window.theme = theme
-# adding webkitAppRegion to default theme
-theme.UIElement.push {WebkitAppRegion: 'no-drag', cursor: 'pointer'}
-theme.UIElementContainer = (disabled, useHighlight, forceHighlight)-> [
-    if useHighlight
-        ':hover': [
-            mixins.boxShadow theme.shadows.smallSoft
-            background: 'white'
-            ]
-    if forceHighlight
-        [
-            mixins.boxShadow theme.shadows.smallSoft
-            background: 'white'
-        ]
-    mixins.transition '250ms', 'background shadow width'
-    if disabled
-        opacity: 0.5
-        pointerEvents: 'none'
-    else
-        opacity: 1
-        pointerEvents:'all'
-    minHeight:'auto'
-    borderRadius: theme.radius.r3
-]
-
-myoui = new MyoUI theme
 electron = require 'electron'
 window.ewin = ewin = electron.remote.getCurrentWindow()
 ewin.setAlwaysOnTop true
@@ -79,6 +45,7 @@ trayMenuTemplate = [
        click: ->
           clear_log?()
           localStorage.myoulog_win_position = JSON.stringify ewin.getPosition()
+          tray.destroy()
           ewin.close()
 
     },
@@ -86,20 +53,15 @@ trayMenuTemplate = [
        label: 'Quit',
        click: ->
            localStorage.myoulog_win_position = JSON.stringify ewin.getPosition()
+           tray.destroy()
            ewin.close()
 
     }
 ]
 
-win_position = localStorage.myoulog_win_position
-if win_position
-    win_position = JSON.parse win_position
-    ewin.setPosition win_position[0], win_position[1]
-
 window.trayMenu = Menu.buildFromTemplate trayMenuTemplate
-if tray?
-    tray.destroy()
-window.tray = new Tray require('./static_files/images/icon.png').replace('file://','')
+ewin.app.tray?.destroy()
+window.tray = ewin.app.tray = new Tray __dirname + '/../static_files/images/icon.png'
 tray.setContextMenu trayMenu
 tray.on 'click', ->
     show_window()
@@ -111,17 +73,15 @@ ewin.on 'restore', ->
 ewin.on 'minimize', ->
     hide_window()
 
-app = document.getElementById 'app'
+win_position = localStorage.myoulog_win_position
+if win_position
+    win_position = JSON.parse win_position
+    ewin.setPosition win_position[0], win_position[1]
 
 MyouLog = require './myou_log'
 old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
-
 myou_log = new MyouLog old_log
-log = myou_log.entries
-
-if isDebug
-    window.log = log
-
+log = window.log = myou_log.entries
 if localStorage.myoulog_last_date?
     last_date = parseInt localStorage.myoulog_last_date
     myou_log.add_log_entry {active:false, date:last_date}
@@ -138,37 +98,11 @@ set_inactivity_check = ->
     last_check_inactivity_interval = setInterval check_inactivity, 60000 * 5
 
 
-# Creating instances of myoui elements
-text_input = new myoui.TextInput
-    label: (maxWidth='calc(100% - 30px)')->
-        maxWidth: 'calc(100% - 10px)'
-        margin: "0px #{theme.spacing}px"
-
-button = new myoui.Button
-    button:
-        maxWidth: 200
-
 # MyoUI includes some React utils.
 {Component, React, ReactDOM} = react_utils
 {div} = React.DOM
 # "Component" returns a radium component which will allow us
 # to use arrays and objects combined in the same style property.
-
-message = (message, custom_style) ->
-    div
-        className: 'myoui'
-        style:[
-            whiteSpace: 'pre-wrap'
-            theme.UIElement
-            minHeight: 'auto'
-            textAlign: 'center'
-            fontSize: 20
-            fontWeight: 100
-            alignSelf: 'center'
-            WebkitAppRegion: 'drag'
-            custom_style
-        ]
-        message
 
 auto_hide_time = Infinity
 last_auto_hide_interval = null
@@ -274,7 +208,7 @@ main_component = Component
 
         dialogs = [
             [
-                message are_you_working_message
+                components.message are_you_working_message
                 div
                     id: "yes_no_container"
                     style: [
@@ -282,7 +216,7 @@ main_component = Component
                         alignSelf: 'center'
 
                     ]
-                    button.ui
+                    components.button
                         label:'yes'
                         useHighlight:true
                         onClick: =>
@@ -291,7 +225,7 @@ main_component = Component
                                 if not myou_log.is_active
                                     myou_log.add_log_entry {active: true, date: Date.now()}
 
-                    button.ui
+                    components.button
                         label:'no'
                         useHighlight:true
                         title:"I'll ask you again in 5 minutes"
@@ -301,7 +235,7 @@ main_component = Component
             ]
 
             [
-                message '''
+                components.message '''
                     What are you working on?
                     '''
                 div
@@ -311,7 +245,7 @@ main_component = Component
                         alignSelf: 'center'
                         width: 'calc(100% - 30px)'
                     ]
-                    text_input.ui
+                    components.text_input
                         autoFocus: true
                         useHighlight: true
                         forceHighlight: auto_highlight and myou_log.last_entry.task
@@ -332,7 +266,7 @@ main_component = Component
                         onMouseLeave: =>
                             @setState {auto_highlight:true}
 
-                    button.ui
+                    components.button
                         label:"I don't know"
                         useHighlight:true
                         forceHighlight: auto_highlight and not (myou_log.last_entry.task)
@@ -348,7 +282,7 @@ main_component = Component
                             @setState {auto_highlight:true}
 
 
-                message "Time to auto-answer: #{auto_hide_time} s",
+                components.message "Time to auto-answer: #{auto_hide_time} s",
                     opacity: if auto_hide_time == Infinity then 0 else 1
             ]
         ]
@@ -388,7 +322,8 @@ main_component = Component
             dialog
 
 
-# Rendering main_component with ReactDOM in our HTML element ```app```
+# Rendering main_component with ReactDOM in our HTML element `app`
+app = document.getElementById 'app'
 render_all= ->
     ReactDOM.render main_component(), app
 render_all()

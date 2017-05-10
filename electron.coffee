@@ -1,5 +1,5 @@
 # dev options
-autoOpenDevTools = false
+autoOpenDevTools = true
 
 fs = require 'fs'
 path = require 'path'
@@ -57,6 +57,7 @@ if isElectron
             # Dereference the window object, usually you would store windows
             # in an array if your app supports multi windows, this is the time
             # when you should delete the corresponding element.
+            win.tray?.destroy()
             win = null
 
         win.createWindow = createWindow
