@@ -52,18 +52,19 @@ hide_window = ->
     ewin.hide()
     console.log 'Set timeout to show window in 5 min.'
     show = ->
-        show_window()
-        ui_alarm()
+        show_window(true)
     show_window_timeout = setTimeout show, 60000 * 5 # 5 min
 
 show_window_time = 0
-show_window = ->
+show_window = (alarm)->
     show_window_time = Date.now()
     ewin.setAlwaysOnTop true
     clearTimeout show_window_timeout
-    console.log 'Disabled timeout.'
     ewin.show()
-    render_all?()
+    if alarm
+        ui_alarm?()
+    else
+        render_all?()
     set_inactivity_check?()
 
 show_window()
@@ -76,8 +77,12 @@ set_inactivity_check = ->
         if ewin.isVisible() and current_dialog == 0
             log.new_entry {active:false, date:show_window_time}
             render_all()
+        ui_alarm()
 
     last_check_inactivity_interval = setInterval check_inactivity, 60000 * 5
+
+addEventListener 'click', set_inactivity_check
+addEventListener 'keydown', -> if current_dialog == 1 then set_inactivity_check()
 
 auto_hide_time = Infinity
 last_auto_hide_interval = null
@@ -125,7 +130,7 @@ ui_alarm = ->
 current_dialog = 0
 working_on_value = ''
 main_component = Component
-    componentDidUpdate: (cosas)->
+    componentDidUpdate: ->
         current_dialog = @state.dialog
 
     componentWillMount: ->
@@ -165,6 +170,7 @@ main_component = Component
             hide_window()
             set_dialog 0
 
+
         are_you_working_message = 'Are you working?'
 
         date_now = Date.now()
@@ -174,16 +180,16 @@ main_component = Component
         if log.entries.length
             if log.is_active
                 are_you_working_message = "
-                    You've been working for\n#{format_time(time)}.\n\n
+                    You've been working for\n#{format_time(time)}\n\n
                     Are you still working?"
                 if time_since_show_window > 60000
                     are_you_working_message = "
-                        It looks like you've \nbeen distracted for\n#{format_time(time_since_show_window)}.\n\n
+                        It looks like you've \nbeen distracted for\n#{format_time(time_since_show_window)}\n\n
                         Were you working?
                     "
             else
                 are_you_working_message = "
-                    You've been distracted for\n#{format_time(time)}.\n\n
+                    You've been distracted for\n#{format_time(time)}\n\n
                     Did you start working?"
 
         dialogs = [
@@ -304,6 +310,7 @@ main_component = Component
 
 # Rendering main_component with ReactDOM in our HTML element `app`
 app = document.getElementById 'app'
+
 render_all= ->
     ReactDOM.render main_component(), app
 
