@@ -1,6 +1,6 @@
 # dev options
-autoOpenDevTools = true
-
+autoOpenDevTools = false
+# ------------------  DO NOT COMMIT THE LINES AVOBE  -----------------------
 fs = require 'fs'
 path = require 'path'
 
@@ -39,9 +39,7 @@ if isElectron
         # Create the browser window.
         win = new BrowserWindow options
 
-        # Setting minimum size.
-        win.setResizable isDebug
-        # and load the index.html of the app.
+        # Load the html of the app.
         win.loadURL url.format
             pathname: path.join __dirname, '/static_files/main_window.html'
             protocol: 'file:'
