@@ -37,7 +37,8 @@ class Log
             new_entry = true
 
         if new_entry
-            console.log entry
+            console.log "%c#{if entry.active then 'working on' else 'distracted'} #{if entry.task then entry.task else ''} #{new Date(entry.date).toString()}",
+                "color: blue"
             @last_entry = entry
             @entries.push entry
             if save
@@ -72,7 +73,7 @@ log.load_promise = new Promise (resolve, reject) ->
         # Saving date on localStorage.myoulog_last_date
         save_last_date = ->
             localStorage.myoulog_last_date = Date.now()
-            setInterval save_last_date, 1
+        setInterval save_last_date, 1000
 
         resolve()
 
