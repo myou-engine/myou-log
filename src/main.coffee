@@ -100,16 +100,21 @@ set_auto_hide_time = (time=10, callback=->)->
     last_auto_hide_interval = setInterval auto_hide_interval, 1000
     render_all()
 
-format_time = (time)->
-    if time < 60000 # 1min
-        return '\nless than 1 min'
-    else if time < 3600000 # 1hour
-        return '\n' + Math.floor(time/60000) + ' min'
-    else
-        hours = time/3600000
-        only_hours = Math.floor(hours)
-        only_min = Math.floor((hours - only_hours) * 60)
-        return '\n' + only_hours + ' hours ' + only_min + ' min'
+format_time = (time=Date.now())->
+    pre_formated_time = new Date(time).toTimeString().split(' ')[0].split(':')
+    hours = parseInt(pre_formated_time[0]) - 1 # WHY???
+    min = parseInt(pre_formated_time[1])
+    sec = parseInt(pre_formated_time[2])
+
+
+    if hours or min or sec
+        formated_time = "#{sec} sec"
+        if hours or min
+            formated_time = "#{min} min " + formated_time
+            if hours
+                formated_time = "#{hours} hours " + formated_time
+
+    return formated_time
 
 
 # This function will be filled on componentWillMount
@@ -169,16 +174,16 @@ main_component = Component
         if log.entries.length
             if log.is_active
                 are_you_working_message = "
-                    You've been working for #{format_time(time)}.\n\n
+                    You've been working for\n#{format_time(time)}.\n\n
                     Are you still working?"
                 if time_since_show_window > 60000
                     are_you_working_message = "
-                        It looks like you've \nbeen distracted for #{format_time(time_since_show_window)}.\n\n
+                        It looks like you've \nbeen distracted for\n#{format_time(time_since_show_window)}.\n\n
                         Were you working?
                     "
             else
                 are_you_working_message = "
-                    You've been distracted for #{format_time(time)}.\n\n
+                    You've been distracted for\n#{format_time(time)}.\n\n
                     Did you start working?"
 
         dialogs = [
@@ -257,7 +262,7 @@ main_component = Component
                             @setState {auto_highlight:true}
 
 
-                components.message "Time to auto-answer: #{auto_hide_time} s",
+                components.message "Time to auto-answer: #{auto_hide_time} sec",
                     opacity: if auto_hide_time == Infinity then 0 else 1
             ]
         ]
