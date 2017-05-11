@@ -24,8 +24,18 @@ if isElectron
     # Keep a global reference of the window object, if you don't, the window will
     # be closed automatically when the JavaScript object is garbage collected.
 
-    create_main_window = ()->
+    create_report_window = ()->
+        options =
+            title: 'MyouLog - Report'
+            titleBarStyle: 'hidden-inset'
+        win = new BrowserWindow options
+        win.loadURL url.format
+            pathname: path.join __dirname, '/static_files/report_window.html'
+            protocol: 'file:'
+            slashes: true
+        win.setMenuBarVisibility false
 
+    create_main_window = ()->
         options =
             width: 350
             height: 200
@@ -60,6 +70,7 @@ if isElectron
 
         win.app = app
         win.isDebug = isDebug
+        win.create_report_window = create_report_window
 
 
     # This method will be called when Electron has finished

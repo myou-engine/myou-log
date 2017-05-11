@@ -26,6 +26,18 @@ class Log
         if save then @save()
         return
 
+    get_duration: (index)->
+        entry = @entries[index]
+        next_entry = @entries[index + 1]
+        if next_entry?
+            return next_entry.date - entry.date
+        else
+            return Date.now() - entry.date
+
+    get_next_task_index: (index)->
+        for i in [index..@entries.length]
+            if @entries[i]?.task then return i
+
     new_entry: (entry, save=true)->
         if entry.active != @is_active
             @is_active = entry.active
@@ -40,7 +52,7 @@ class Log
             new_entry = true
 
         if new_entry
-            console.log "%c#{if entry.active then 'working on' else 'distracted'} #{if entry.task then entry.task else ''} #{new Date(entry.date).toString()}",
+            console.log "%c#{if entry.active then 'working on' else 'distracted'} #{if entry.task then entry.task else 'UNKNOWN'} #{new Date(entry.date).toString()}",
                 "color: blue"
             @last_entry = entry
             @entries.push entry
@@ -50,37 +62,40 @@ class Log
 log = new Log
 
 # This promise is resolved only after read the log file.
-log.load_promise = new Promise (resolve, reject) ->
-    fs.readFile 'log', 'utf8', (err, data)->
-        old_log = []
-        if err
-            console.log err
-            # Reading from localStorage if log file doesn't exist.
-            console.log 'Reading deprecated log from localStorage. \nIt will be cleared after this operation.'
-            old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
-            # moved to myoulog_backup to save it in case of loose your log
-            localStorage.myoulog_backup = localStorage.myoulog
-            localStorage.removeItem 'myoulog'
-            # It will also save the log file.
-            log.add_multiple_entries old_log
-        else
-            console.log 'Reading log from file.'
-            old_log = JSON.parse data or '[]'
-            # loading without save because, the log will not have any changes.
-            log.add_multiple_entries old_log, false
+log.get_load_promise = ->
+    new Promise (resolve, reject) ->
+        fs.readFile 'log', 'utf8', (err, data)->
+            old_log = []
+            if err
+                console.log err
+                # Reading from localStorage if log file doesn't exist.
+                console.warn 'Reading deprecated log from localStorage. \nIt will be cleared after this operation.'
+                old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
+                # moved to myoulog_backup to save it in case of loose your log
+                localStorage.myoulog_backup = localStorage.myoulog
+                localStorage.removeItem 'myoulog'
+                # It will also save the log file.
+                log.add_multiple_entries old_log
+            else
+                console.log 'Reading log from file.'
+                old_log = JSON.parse data or '[]'
+                # loading without save because, the log will not have any changes.
+                log.add_multiple_entries old_log, false
 
-        # using saved date from localStorage.myoulog_last_date
-        # to create a new inactivity entry
-        if localStorage.myoulog_last_date?
-            last_date = parseInt localStorage.myoulog_last_date
-            log.new_entry {active:false, date:last_date}
+            resolve()
 
-        # Saving date on localStorage.myoulog_last_date
-        save_last_date = ->
-            localStorage.myoulog_last_date = Date.now()
-        setInterval save_last_date, 1000
+log.enable_last_date_checker = ->
+    # using saved date from localStorage.myoulog_last_date
+    # to create a new inactivity entry
+    if localStorage.myoulog_last_date?
+        last_date = parseInt localStorage.myoulog_last_date
+        log.new_entry {active:false, date:last_date}
 
-        resolve()
+    # Saving date on localStorage.myoulog_last_date
+    save_last_date = ->
+        localStorage.myoulog_last_date = Date.now()
+    setInterval save_last_date, 1000
+
 
 #debug log
 window.$log = log

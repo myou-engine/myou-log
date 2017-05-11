@@ -4,7 +4,7 @@
 # adding default css code to the document
 require 'myoui/default_fonts'
 require 'myoui/default_animations'
-
+markdown = react_utils.React.createFactory require('react-remarkable')
 theme = new Theme
 window.theme = theme
 # adding webkitAppRegion to default theme
@@ -70,4 +70,20 @@ sounds = {
     notification: new Audio('sounds/notification.mp3')
 }
 
-module.exports = {react_utils, theme, mixins, components, sounds}
+format_time = (time=Date.now())->
+    pre_formated_time = new Date(time).toTimeString().split(' ')[0].split(':')
+    hours = parseInt(pre_formated_time[0]) - 1 # WHY???
+    min = parseInt(pre_formated_time[1])
+    sec = parseInt(pre_formated_time[2])
+
+
+    if hours or min or sec
+        formated_time = "#{sec} sec"
+        if hours or min
+            formated_time = "#{min} min " + formated_time
+            if hours
+                formated_time = "#{hours} hours " + formated_time
+
+    return formated_time
+
+module.exports = {react_utils, theme, mixins, components, sounds, markdown, format_time}

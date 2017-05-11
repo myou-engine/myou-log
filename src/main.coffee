@@ -1,6 +1,6 @@
 log = require './log'
 
-{react_utils, theme, mixins, components, sounds} = require './common_ui.coffee'
+{react_utils, theme, mixins, components, sounds, format_time} = require './common_ui.coffee'
 # MyoUI includes some React utils.
 {Component, React, ReactDOM} = react_utils
 {div} = React.DOM
@@ -23,6 +23,11 @@ trayMenuTemplate = [
        label: 'Show app',
        click: ->
           show_window()
+    }
+    {
+       label: 'Report viewer',
+       click: ->
+          ewin.create_report_window()
     }
     {
        label: 'Quit',
@@ -110,23 +115,6 @@ set_auto_hide_time = (time=10, callback=->)->
     last_auto_hide_interval = setInterval auto_hide_interval, 1000
     render_all()
 
-format_time = (time=Date.now())->
-    pre_formated_time = new Date(time).toTimeString().split(' ')[0].split(':')
-    hours = parseInt(pre_formated_time[0]) - 1 # WHY???
-    min = parseInt(pre_formated_time[1])
-    sec = parseInt(pre_formated_time[2])
-
-
-    if hours or min or sec
-        formated_time = "#{sec} sec"
-        if hours or min
-            formated_time = "#{min} min " + formated_time
-            if hours
-                formated_time = "#{hours} hours " + formated_time
-
-    return formated_time
-
-
 # This function will be filled on componentWillMount
 set_dialog = ->
 ui_alarm = ->
@@ -167,9 +155,9 @@ main_component = Component
                 hide_window()
 
         if not yes_shortcut
-            console.log 'Global shorcut in use: CommandOrControl+Alt+Y'
+            console.warn 'Global shorcut in use: CommandOrControl+Alt+Y'
         if not no_shortcut
-            console.log 'Global shorcut in use: CommandOrControl+Alt+N'
+            console.warn 'Global shorcut in use: CommandOrControl+Alt+N'
 
     getInitialState: ->
         dialog: 0
@@ -341,7 +329,8 @@ app_element = document.getElementById 'app'
 render_all= ->
     ReactDOM.render main_component(), app_element
 
-log.load_promise.then ->
+log.get_load_promise().then ->
+    log.enable_last_date_checker()
     render_all()
 
 setInterval render_all, 1000
