@@ -14,7 +14,7 @@ isElectron = /^electron|myou-log/.test  app_proccess
 
 
 if isElectron
-    {app, BrowserWindow} = require 'electron'
+    {app, BrowserWindow, globalShortcut} = require 'electron'
     if not app? # old electron api
         app = require('app') # Module to control application life.
         BrowserWindow = require('browser-window')  # Module to create native browser window.
@@ -74,7 +74,10 @@ if isElectron
         if process.platform != 'darwin'
             app.quit()
 
-    app.on 'activate', ()=>
+    app.on 'will-quit', ->
+        globalShortcut.unregisterAll()
+
+    app.on 'activate', ->
         # On macOS it's common to re-create a window in the app when the
         # dock icon is clicked and there are no other windows open.
         if not win?

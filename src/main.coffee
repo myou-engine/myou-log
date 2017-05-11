@@ -15,7 +15,7 @@ window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
 
-{Tray, Menu, app} = electron.remote
+{Tray, Menu, app, globalShortcut} = electron.remote
 path = require 'path'
 trayMenuTemplate = [
 
@@ -45,6 +45,7 @@ ewin.on 'minimize', ->
 
 addEventListener 'beforeunload', ->
     tray.destroy()
+    globalShortcut.unregisterAll()
 
 win_position = localStorage.myoulog_win_position
 if win_position
@@ -153,6 +154,23 @@ main_component = Component
                 set_inactivity_check()
             @setState {dialog}
 
+        yes_shortcut = globalShortcut.register 'CommandOrControl+Alt+Y', =>
+            if @state.dialog == 0
+                @setState dialog: 1
+                set_auto_hide_time 10, ->
+                    if not log.is_active
+                        log.new_entry {active: true, date: Date.now()}
+
+        no_shortcut = globalShortcut.register 'CommandOrControl+Alt+N', =>
+            if @state.dialog == 0
+                log.new_entry {active: false, date: show_window_time}
+                hide_window()
+
+        if not yes_shortcut
+            console.log 'Global shorcut in use: CommandOrControl+Alt+Y'
+        if not no_shortcut
+            console.log 'Global shorcut in use: CommandOrControl+Alt+N'
+
     getInitialState: ->
         dialog: 0
         auto_highlight: true
@@ -209,6 +227,7 @@ main_component = Component
                     components.button
                         label:'yes'
                         useHighlight:true
+                        title: 'Global Shortcut: CommandOrControl+Alt+Y'
                         onClick: =>
                             @setState dialog: 1
                             set_auto_hide_time 10, ->
@@ -218,7 +237,10 @@ main_component = Component
                     components.button
                         label:'no'
                         useHighlight:true
-                        title:"I'll ask you again in 5 minutes"
+                        title:"
+                            Global Shortcut: CommandOrControl+Alt+N\n
+                            I'll ask you again in 5 minutes
+                            "
                         onClick: =>
                             log.new_entry {active: false, date: show_window_time}
                             hide_window()
