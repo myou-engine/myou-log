@@ -13,7 +13,10 @@ class Log
         @save()
 
     save: ->
-        fs.writeFile 'log', JSON.stringify(@entries), (err)->
+        str_entries = JSON.stringify(@entries)
+        #saving backup
+        localStorage.myoulog_backup = str_entries
+        fs.writeFile 'log', str_entries, (err)->
             if err then console.log err
             console.log 'The file was saved!'
 
@@ -55,6 +58,8 @@ log.load_promise = new Promise (resolve, reject) ->
             # Reading from localStorage if log file doesn't exist.
             console.log 'Reading deprecated log from localStorage. \nIt will be cleared after this operation.'
             old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
+            # moved to myoulog_backup to save it in case of loose your log
+            localStorage.myoulog_backup = localStorage.myoulog
             localStorage.removeItem 'myoulog'
             # It will also save the log file.
             log.add_multiple_entries old_log
