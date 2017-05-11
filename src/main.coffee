@@ -178,7 +178,7 @@ main_component = Component
                     "
             else
                 are_you_working_message = "
-                    You've been distracted for #{format_time(time_since_show_window)}.\n\n
+                    You've been distracted for #{format_time(time)}.\n\n
                     Did you start working?"
 
         dialogs = [
