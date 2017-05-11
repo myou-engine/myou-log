@@ -15,7 +15,7 @@ window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
 
-{Tray, Menu} = electron.remote
+{Tray, Menu, app} = electron.remote
 path = require 'path'
 trayMenuTemplate = [
 
@@ -34,13 +34,17 @@ trayMenuTemplate = [
 ]
 
 trayMenu = Menu.buildFromTemplate trayMenuTemplate
-ewin.app.tray?.destroy()
-tray = ewin.app.tray = new Tray __dirname + '/../static_files/images/icon.png'
+
+tray = new Tray __dirname + '/../static_files/images/icon.png'
+
 tray.setContextMenu trayMenu
 tray.on 'click', ->
     show_window()
 ewin.on 'minimize', ->
     hide_window()
+
+addEventListener 'beforeunload', ->
+    tray.destroy()
 
 win_position = localStorage.myoulog_win_position
 if win_position
@@ -309,10 +313,10 @@ main_component = Component
 
 
 # Rendering main_component with ReactDOM in our HTML element `app`
-app = document.getElementById 'app'
+app_element = document.getElementById 'app'
 
 render_all= ->
-    ReactDOM.render main_component(), app
+    ReactDOM.render main_component(), app_element
 
 log.load_promise.then ->
     render_all()
