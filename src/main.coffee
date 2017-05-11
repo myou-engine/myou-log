@@ -265,6 +265,7 @@ main_component = Component
                         read: -> working_on_value
                         onSubmit: working_on_submit
                         onChange: (new_value)=>
+                            set_auto_hide_time Infinity
                             @setState {writing_working_on:true}
                             working_on_value = new_value
                         onClick: (event)=>
