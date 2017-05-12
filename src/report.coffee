@@ -10,25 +10,25 @@ log.get_load_promise().then ->
         # componentWillMount: ->
         # getInitialState: ->
         render: ->
-            for i,e of log.entries when e.active
-                i = parseInt i
-                if not e.task
-                    next_i = log.get_next_task_index(i)
-                    if next_i then e.task = log.entries[next_i].task
-
+            group_entries = true # TODO: group by date?
 
             final_entries = []
-            last_task = undefined
-            for i,e of log.entries
-                if not final_entries.length
-                    final_entries.push e
-                    continue
-
-                i = parseInt i
-                if e.task == final_entries[final_entries.length-1].task
-                    continue
-                final_entries.push e
-
+            last_active_entry = null
+            last_was_active = false
+            for {active, task, date},i in log.entries
+                next_entry = log.entries[i+1]
+                delta = (next_entry?.date or Date.now()) - date
+                if active
+                    if last_active_entry?
+                        if task and not last_active_entry.task
+                            last_active_entry.task = task
+                        if last_was_active or group_entries
+                            if last_active_entry.task == task
+                                last_active_entry.delta += delta
+                                continue
+                    last_active_entry = {delta, task, date}
+                    final_entries.push last_active_entry
+                last_was_active = active
 
             div
                 id: 'main_container'
@@ -46,12 +46,7 @@ log.get_load_promise().then ->
                     # overflowX: 'hidden'
                     WebkitAppRegion: 'drag'
                 ]
-
-                for i,e of final_entries
-                    i = parseInt i
-                    next_entry = final_entries[i + 1]
-                    if next_entry? then duration = next_entry.date - e.date
-                    else duration = Date.now() - e.date
+                for {delta, task, date} in final_entries
                     div
                         className: 'entry'
                         style: [
@@ -61,9 +56,9 @@ log.get_load_promise().then ->
                             marginLeft: 20
                         ]
                         markdown {}, "
-                            __Task:__ #{e.task}
-                            __Duration:__ #{format_time duration}
-                            __Date:__ #{new Date(e.date).toLocaleString()}
+                            __Task:__ #{task}
+                            __Duration:__ #{format_time delta}
+                            __Date:__ #{new Date(date).toLocaleString()}
                             "
 
 
