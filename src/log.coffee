@@ -52,8 +52,10 @@ class Log
             new_entry = true
 
         if new_entry
-            console.log "%c#{if entry.active then 'working on' else 'distracted'} #{if entry.task then entry.task else 'UNKNOWN'} #{new Date(entry.date).toString()}",
-                "color: blue"
+            console.log "%c#{if entry.active then 'working on' else 'distracted'}
+                #{if entry.task then entry.task else if entry.active then 'UNKNOWN' else ''}
+                #{new Date(entry.date).toLocaleString()}",
+                "color:#{if entry.active then 'blue' else 'gray'}"
             @last_entry = entry
             @entries.push entry
             if save
