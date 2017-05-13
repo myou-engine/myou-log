@@ -13,22 +13,29 @@ log.get_load_promise().then ->
             group_entries = true # TODO: group by date?
 
             final_entries = []
-            last_active_entry = null
             last_was_active = false
-            for {active, task, date},i in log.entries
-                next_entry = log.entries[i+1]
-                delta = (next_entry?.date or Date.now()) - date
+            last_valid_task = null
+            last_task = null
+
+            # Filling undefined active task and combining entries with adjacent with same task
+            for {active, task, date}, i in log.entries
+                new_entry = false
                 if active
-                    if last_active_entry?
-                        if task and not last_active_entry.task
-                            last_active_entry.task = task
-                        if last_was_active or group_entries
-                            if last_active_entry.task == task
-                                last_active_entry.delta += delta
-                                continue
-                    last_active_entry = {delta, task, date}
-                    final_entries.push last_active_entry
-                last_was_active = active
+                    task = log.get_next_task i
+                if active != last_was_active or last_task != task
+                    new_entry = true
+                    last_was_active = active
+                    if active
+                        last_task = task
+                    final_entries.push {active, task, date}
+
+            # Calculating duration
+            for e,i in final_entries
+                next_entry = final_entries[i+1]
+                if next_entry?
+                    e.delta = next_entry.date - e.date
+                else
+                    e.delta = Date.now() - e.date
 
             div
                 id: 'main_container'
@@ -46,20 +53,19 @@ log.get_load_promise().then ->
                     # overflowX: 'hidden'
                     WebkitAppRegion: 'drag'
                 ]
-                for {delta, task, date} in final_entries
+                for {active, delta, task, date} in final_entries
                     div
                         className: 'entry'
                         style: [
                             padding: 10
-                            color: theme.colors.dark
+                            color: if active then theme.colors.dark else "#bababa"
                             width: "100%"
                             marginLeft: 20
                         ]
                         markdown {}, "
-                            __Task:__ #{task}
-                            __Duration:__ #{format_time delta}
-                            __Date:__ #{new Date(date).toLocaleString()}
-                            "
+                            #{if active then "__Task__ #{if task then task else ''}" else '__Inactivity__ '}
+                            __Duration__ #{format_time delta}
+                            __Date__ #{new Date(date).toLocaleString()}"
 
 
     # Rendering main_component with ReactDOM in our HTML element `app`

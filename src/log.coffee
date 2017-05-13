@@ -34,9 +34,10 @@ class Log
         else
             return Date.now() - entry.date
 
-    get_next_task_index: (index)->
+    get_next_task: (index)->
         for i in [index..@entries.length]
-            if @entries[i]?.task then return i
+            e = @entries[i]
+            if e?.task then return e.task
 
     new_entry: (entry, save=true)->
         if entry.active != @is_active
