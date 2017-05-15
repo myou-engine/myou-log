@@ -32,6 +32,12 @@ theme.UIElementContainer = (disabled, useHighlight, forceHighlight)-> [
 ]
 
 theme.colors.green = 'rgb(194, 228, 157)'
+theme.colors.light_green = 'rgb(200, 244, 187)'
+theme.colors.light_orange = 'rgb(255, 181, 132)'
+theme.colors.orange = 'rgb(255, 171, 112)'
+
+
+
 myoui = new MyoUI theme
 
 # Creating instances of myoui elements
@@ -71,19 +77,19 @@ sounds = {
 }
 
 format_time = (time=Date.now())->
-    pre_formated_time = new Date(time).toTimeString().split(' ')[0].split(':')
-    hours = parseInt(pre_formated_time[0]) - 1 # WHY???
-    min = parseInt(pre_formated_time[1])
-    sec = parseInt(pre_formated_time[2])
+    sec = Math.floor (time / 1000) % 60
+    min = Math.floor (time / (1000*60)) % 60
+    hours = Math.floor (time / (1000*60*60)) % 24
+    days = Math.floor time / (1000*60*60*24)
 
-
-    if hours or min or sec
+    if days or hours or min or sec
         formated_time = "#{sec} sec"
-        if hours or min
+        if days or hours or min
             formated_time = "#{min} min " + formated_time
-            if hours
+            if days or hours
                 formated_time = "#{hours} hours " + formated_time
-
+                if days
+                    formated_time = "#{days} day#{if days > 1 then 's'} " + formated_time
     return formated_time
 
 module.exports = {react_utils, theme, mixins, components, sounds, markdown, format_time}
