@@ -71,6 +71,7 @@ show_window = (alarm)->
     ewin.setAlwaysOnTop true
     clearTimeout show_window_timeout
     ewin.show()
+    ewin.blur()
     if alarm
         ui_alarm?()
     else
@@ -145,6 +146,7 @@ main_component = Component
         yes_shortcut = globalShortcut.register 'CommandOrControl+Alt+Y', =>
             if @state.dialog == 0
                 @setState dialog: 1
+                ewin.focus()
                 set_auto_hide_time 10, ->
                     if not log.is_active
                         log.new_entry {active: true, date: Date.now()}
