@@ -3,6 +3,10 @@
 {div, form, input} = React.DOM
 log = require './log'
 
+MONTHS = ['January', 'February', 'March', 'April', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+WEEK_DAYS = ['sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+last_date = null
+
 log.get_load_promise().then ->
 
     main_component = Component
@@ -70,9 +74,14 @@ log.get_load_promise().then ->
                     # overflowX: 'hidden'
                     WebkitAppRegion: 'drag'
                 ]
-                form {},
-                    "from "
+                form
+                    style:
+                        margin: 20
+                    "Date range from "
                     input
+                        style:
+                            marginLeft: 10
+                            marginRight: 10
                         type: 'date'
                         name: 'date_value'
                         defaultValue: f_min_date_from
@@ -83,6 +92,9 @@ log.get_load_promise().then ->
                             @setState {date_from: Date.parse(e.target.value)}
                     "to"
                     input
+                        style:
+                            marginLeft: 10
+                            marginRight: 10
                         type: 'date'
                         name: 'date_value'
                         defaultValue: f_max_date_to
@@ -93,6 +105,17 @@ log.get_load_promise().then ->
                             @setState {date_to: Date.parse(e.target.value)}
 
                 for {active, delta, task, date} in final_entries when @state.date_to + 24*60*60*1000 >= date >= @state.date_from
+                    date = new Date(date)
+
+                    day = date.getDate()
+                    month = MONTHS[date.getMonth()]
+                    week_day = WEEK_DAYS[date.getDay()]
+                    year = date.getFullYear()
+
+                    f_date = "#{week_day}, __#{day} #{month}__ - #{year}"
+                    [if last_date != f_date
+                        last_date = f_date
+                        div {style:{margin:'40px 0 10px 20px'}}, markdown({}, f_date)
                     div
                         className: 'entry'
                         style: [
@@ -102,10 +125,9 @@ log.get_load_promise().then ->
                             marginLeft: 20
                         ]
                         markdown {}, "
-                            #{if active then "__Task__ #{if task then task else ''}" else '__Inactivity__ '}
-                            __Duration__ #{format_time delta}
-                            __Date__ #{new Date(date).toLocaleString()}"
-
+                            #{if active then "__#{task or 'Activity'}__&nbsp;&nbsp;-&nbsp;" else "__Inactivity__&nbsp;&nbsp;-&nbsp;"}
+                            #{format_time delta}
+                            _(#{date.toLocaleTimeString()})_"]
 
     # Rendering main_component with ReactDOM in our HTML element `app`
     app = document.getElementById 'app'
