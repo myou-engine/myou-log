@@ -82,14 +82,17 @@ format_time = (time=Date.now())->
     hours = Math.floor (time / (1000*60*60)) % 24
     days = Math.floor time / (1000*60*60*24)
 
+    formated_time = ''
     if days or hours or min or sec
-        formated_time = "#{sec} sec"
+        if not(hours or days)
+            formated_time = "#{sec} sec"
         if days or hours or min
-            formated_time = "#{min} min " + formated_time
+            if not (days)
+                formated_time = "#{min} min " + formated_time
             if days or hours
-                formated_time = "#{hours} hours " + formated_time
+                formated_time = "#{hours} hour#{if hours > 1 then 's' else ''} " + formated_time
                 if days
-                    formated_time = "#{days} day#{if days > 1 then 's'} " + formated_time
+                    formated_time = "#{days} day#{if days > 1 then 's' else ''} " + formated_time
     return formated_time
 
 module.exports = {react_utils, theme, mixins, components, sounds, markdown, format_time}
