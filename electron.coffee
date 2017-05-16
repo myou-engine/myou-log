@@ -44,7 +44,7 @@ if isElectron
 
         options =
             width: 350
-            height: 200
+            height: 220
             frame: if is_linux then true else false
             transparent: if is_linux then false else true
             show: true

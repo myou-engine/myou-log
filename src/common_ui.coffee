@@ -50,6 +50,12 @@ button = new myoui.Button
     button:
         maxWidth: 200
 
+slider = new myoui.Slider
+    value: [
+        width: 'auto'
+        textAlign: 'center'
+    ]
+
 {div} = react_utils.React.DOM
 message = (message, custom_style) ->
     div
@@ -68,10 +74,12 @@ message = (message, custom_style) ->
         message
 
 components = {
+    slider: slider.ui
     button:button.ui
     text_input: text_input.ui,
     message
 }
+
 sounds = {
     notification: new Audio('sounds/notification.mp3')
 }
@@ -93,6 +101,6 @@ format_time = (time=Date.now())->
                 formated_time = "#{hours} hour#{if hours > 1 then 's' else ''} " + formated_time
                 if days
                     formated_time = "#{days} day#{if days > 1 then 's' else ''} " + formated_time
-    return formated_time
+    return formated_time or '0 sec'
 
 module.exports = {react_utils, theme, mixins, components, sounds, markdown, format_time}

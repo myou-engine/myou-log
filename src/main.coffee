@@ -11,8 +11,6 @@ is_linux = process.platform == 'linux'
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
-window.settings = ewin.settings
-
 window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
@@ -79,12 +77,12 @@ if win_position
 
 show_window_timeout = null
 hide_window = (break_time=0)->
+    break_time = break_time or settings.auto_show_window_timeout
     ewin.hide()
-    console.log 'Set timeout to show window in 5 min.'
+    console.log "Set timeout to show window in #{format_time break_time}."
     show = ->
         show_window(true)
-    show_window_timeout = setTimeout show,
-        break_time or settings.auto_show_window_timeout
+    show_window_timeout = setTimeout show, break_time
 
 show_window_time = 0
 show_window = (alarm)->
@@ -145,6 +143,7 @@ ui_alarm = ->
 # active dialog out of the component render function
 current_dialog = 0
 working_on_value = ''
+selected_reward = 0
 main_component = Component
     componentDidUpdate: ->
         current_dialog = @state.dialog
@@ -187,6 +186,7 @@ main_component = Component
         dialog: 0
         auto_highlight: true
     render: ->
+        selected_reward = Math.min selected_reward, log.get_reward()
         auto_highlight = @state.auto_highlight and (auto_hide_time != Infinity)
         if not @state.writing_working_on
             working_on_value = log.last_task
@@ -230,16 +230,14 @@ main_component = Component
             [
                 components.message are_you_working_message
                 div
-                    id: "yes_no_container"
                     style: [
                         mixins.rowFlex
                         alignSelf: 'center'
-
                     ]
                     components.button
                         label:'yes'
                         useHighlight:true
-                        title: 'Global Shortcut: CommandOrControl+Alt+Y'
+                        title: "Global Shortcut: #{settings.global_shortcuts.yes}"
                         onClick: =>
                             @setState dialog: 1
                             set_auto_hide_time 10, ->
@@ -250,12 +248,21 @@ main_component = Component
                         label:'no'
                         useHighlight:true
                         title:"
-                            Global Shortcut: CommandOrControl+Alt+N\n
+                            Global Shortcut: #{settings.global_shortcuts.no}\n
                             I'll ask you again in 5 minutes
                             "
                         onClick: =>
                             log.new_entry {active: false, date: show_window_time}
                             hide_window()
+
+                    if log.get_reward()
+                        components.button
+                            label: 'rest'
+                            useHighlight: true
+                            title:"Available time:\n#{format_time log.get_reward()}"
+                            onClick: =>
+                                @setState dialog: 2
+
             ]
 
             [
@@ -310,6 +317,48 @@ main_component = Component
                 components.message "Time to auto-answer: #{auto_hide_time} sec",
                     opacity: if auto_hide_time == Infinity then 0 else 1
             ]
+            [
+
+                components.message "
+                    How long do you
+                    want to rest?
+                    "
+                components.slider
+                    min: settings.reward_pack
+                    max: Math.max log.get_reward(), settings.reward_pack
+                    step: Math.min settings.reward_pack, log.get_reward()/4
+                    allowManualEdit: false
+                    disabled: log.get_reward() <= settings.reward_pack
+                    hideValue: false
+                    formatValue: (v)->
+                        format_time v
+                    read: -> selected_reward
+                    onSlideEnd: (v)-> selected_reward = v
+                div
+                    style: [
+                        mixins.rowFlex
+                        alignSelf: 'center'
+                        margin: "10px 0 10px 0"
+                    ]
+                    components.button
+                        label:'cancel'
+                        useHighlight:true
+                        title:"Back to the previous dialog"
+                        onClick: =>
+                            @setState dialog: 0
+
+                    components.button
+                        label:'ok'
+                        useHighlight:true
+                        title: "I'll ask you again after your break time."
+                        onClick: =>
+                            log.new_entry {active: false, date: Date.now()}
+                            @setState dialog: 0
+                            hide_window selected_reward
+
+
+
+            ]
         ]
 
         dialog = dialogs[@state.dialog]
@@ -322,7 +371,7 @@ main_component = Component
             style: [
                 mixins.columnFlex
                 justifyContent: 'center'
-                alignItems: 'flex-start'
+                alignItems: 'center'
                 top: '0'
                 backgroundColor: if @state.alarm then theme.colors.green else theme.colors.light
                 position: 'absolute'
@@ -355,6 +404,7 @@ render_all= ->
 
 log.get_load_promise().then ->
     log.enable_last_date_checker()
+    selected_reward = log.get_reward()
     render_all()
 
 setInterval render_all, 1000

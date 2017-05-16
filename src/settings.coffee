@@ -10,6 +10,8 @@ new class MyouLogSettings
                 no: 'CommandOrControl+Alt+N'
             open_on_startup: true
             log_file: 'log.json'
+            reward_ratio: 1/4
+            reward_pack: 300000 # 5 min 
 
         @save_settings = save_settings = => new Promise (resolve, reject)=>
             data = JSON.stringify @settings, null, 4

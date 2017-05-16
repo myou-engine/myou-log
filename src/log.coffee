@@ -1,7 +1,7 @@
 fs = require 'fs'
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
-{log_file} = ewin.settings
+{log_file, reward_ratio, reward_pack, inactivity_check_interval} = ewin.settings
 class Log
     constructor: (entries=[])->
         @entries = []
@@ -25,17 +25,17 @@ class Log
             else
                 console.log 'Log file saved here: ', log_file
 
-    get_reward: (ratio=2/8, date_range=[0,Date.now()])->
+    get_reward: (date_range=[0,Date.now()])->
         reward = 0
         for {active, date}, i in @entries
             if date_range[1] > date > date_range[0]
                 if active
                     reward += @get_duration i
                 else
-                    reward -= @get_duration i
+                    reward -= 1/reward_ratio * @get_duration i
                     reward = Math.max 0, reward
 
-        return reward*ratio
+        return Math.floor((reward * reward_ratio) / reward_pack)*reward_pack
 
     get_duration: (index)->
         entry = @entries[index]
