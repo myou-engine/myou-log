@@ -58,7 +58,8 @@ if isElectron
 
         win.setMenuBarVisibility false
         # Open the DevTools.
-        if isDebug and settings.auto_open_dev_tools then win.webContents.openDevTools()
+        if settings.auto_open_dev_tools
+            win.webContents.openDevTools({mode:'detach'})
 
         # Emitted when the window is closed.
         win.on 'closed', =>
