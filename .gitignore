@@ -20,3 +20,5 @@ local/
 Thumbs.db
 *.local
 log
+log.json
+settings.json

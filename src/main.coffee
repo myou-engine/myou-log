@@ -11,6 +11,8 @@ is_linux = process.platform == 'linux'
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
+window.MYOU_LOG_SETTINGS = ewin.MYOU_LOG_SETTINGS
+
 window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
@@ -58,12 +60,13 @@ if win_position
     ewin.setPosition win_position[0], win_position[1]
 
 show_window_timeout = null
-hide_window = ->
+hide_window = (break_time=0)->
     ewin.hide()
     console.log 'Set timeout to show window in 5 min.'
     show = ->
         show_window(true)
-    show_window_timeout = setTimeout show, 60000 * 5 # 5 min
+    show_window_timeout = setTimeout show,
+        break_time or MYOU_LOG_SETTINGS.auto_show_window_timeout
 
 show_window_time = 0
 show_window = (alarm)->
@@ -90,7 +93,8 @@ set_inactivity_check = ->
             render_all()
         ui_alarm()
 
-    last_check_inactivity_interval = setInterval check_inactivity, 60000 * 5
+    last_check_inactivity_interval = setInterval check_inactivity,
+        MYOU_LOG_SETTINGS.inactivity_check_interval
 
 addEventListener 'click', set_inactivity_check
 addEventListener 'keydown', -> if current_dialog == 1 then set_inactivity_check()
