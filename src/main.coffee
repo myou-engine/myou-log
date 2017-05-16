@@ -17,6 +17,13 @@ window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
 
+addEventListener 'keydown', (event)->
+    if event.keyCode == 123
+        ewin.webContents.openDevTools({mode:'detach'})
+
+settings = ewin.settings
+window.$settings = settings
+
 AutoLaunch = require 'auto-launch'
 auto_launcher = window.auto_launcher = new AutoLaunch
     name: 'myou-log'
