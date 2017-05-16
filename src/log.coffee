@@ -13,12 +13,15 @@ class Log
         @save()
 
     save: ->
-        str_entries = JSON.stringify(@entries)
+        str_entries = JSON.stringify(@entries, null, 4)
         #saving backup
         localStorage.myoulog_backup = str_entries
-        fs.writeFile 'log', str_entries, (err)->
-            if err then console.log err
-            console.log 'The file was saved!'
+        console.log 'Saving log file...'
+        fs.writeFile 'log.json', str_entries, (err)->
+            if err
+                console.log err
+            else
+                console.log 'Log file saved!'
 
     add_multiple_entries: (entries=[], save=true)->
         for e in entries
@@ -67,7 +70,11 @@ log = new Log
 # This promise is resolved only after read the log file.
 log.get_load_promise = ->
     new Promise (resolve, reject) ->
-        fs.readFile 'log', 'utf8', (err, data)->
+        if fs.existsSync 'log'
+            fs.rename('log', 'log.json')
+            console.log 'Old log file found. Renamed to log.json'
+
+        fs.readFile 'log.json', 'utf8', (err, data)->
             old_log = []
             if err
                 console.log err
