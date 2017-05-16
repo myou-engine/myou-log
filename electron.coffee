@@ -20,8 +20,9 @@ if isElectron
     # be closed automatically when the JavaScript object is garbage collected.
 
     MYOU_LOG_SETTINGS = {
-        "inactivity_check_interval": 300000,
-        "auto_show_window_timeout": 300000,
+        inactivity_check_interval: 300000,
+        auto_show_window_timeout: 300000,
+        open_on_startup: true,
     }
 
     if isDebug

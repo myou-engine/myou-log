@@ -11,6 +11,7 @@
     "dist": "build"
   },
   "dependencies": {
+    "auto-launch": "^5.0.1",
     "coffee-loader": "^0.7.3",
     "coffee-script": "^1.12.5",
     "create-react-class": "^15.5.2",

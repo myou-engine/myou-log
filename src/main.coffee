@@ -17,6 +17,14 @@ window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
 
+AutoLaunch = require 'auto-launch'
+auto_launcher = window.auto_launcher = new AutoLaunch
+    name: 'myou-log'
+
+if not ewin.isDebug
+    auto_launcher.enable().then ()->
+        console.log 'Auto-launch enabled'
+
 {Tray, Menu, app, globalShortcut} = electron.remote
 path = require 'path'
 trayMenuTemplate = [
