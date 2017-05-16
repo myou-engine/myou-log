@@ -31,8 +31,14 @@ log.get_load_promise().then ->
                 # skiping pauses with duration < 5 min
                 if not active and ((log.entries[i + 1]?.date or date_now) - date) < 300000
                     active = true
+
                 if active
-                    task = log.get_next_task i
+                    for ii in [i..log.entries.length]
+                        e =log.entries[ii]
+                        if e?.task
+                            task = e.task
+                            break
+
                 if active != last_was_active or last_task != task
                     new_entry = true
                     last_was_active = active
