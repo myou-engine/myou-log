@@ -51,6 +51,7 @@ if isElectron
             icon: path.join __dirname, 'static_files/images/icon.png'
             title: 'MyouLog'
             skipTaskbar: true
+            resizable: false
 
         # Create the browser window.
         win = new BrowserWindow options
