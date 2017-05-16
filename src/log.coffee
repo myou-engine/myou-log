@@ -112,7 +112,8 @@ log.enable_last_date_checker = ->
     # to create a new inactivity entry
     if localStorage.myoulog_last_date?
         last_date = parseInt localStorage.myoulog_last_date
-        log.new_entry {active:false, date:last_date}
+        if (Date.now() - last_date) > inactivity_check_interval
+            log.new_entry {active:false, date:last_date}
 
     # Saving date on localStorage.myoulog_last_date
     save_last_date = ->
