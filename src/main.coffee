@@ -11,7 +11,7 @@ is_linux = process.platform == 'linux'
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
-window.MYOU_LOG_SETTINGS = ewin.MYOU_LOG_SETTINGS
+window.settings = ewin.settings
 
 window.$window = ewin
 ewin.setAlwaysOnTop true
@@ -74,7 +74,7 @@ hide_window = (break_time=0)->
     show = ->
         show_window(true)
     show_window_timeout = setTimeout show,
-        break_time or MYOU_LOG_SETTINGS.auto_show_window_timeout
+        break_time or settings.auto_show_window_timeout
 
 show_window_time = 0
 show_window = (alarm)->
@@ -102,7 +102,7 @@ set_inactivity_check = ->
         ui_alarm()
 
     last_check_inactivity_interval = setInterval check_inactivity,
-        MYOU_LOG_SETTINGS.inactivity_check_interval
+        settings.inactivity_check_interval
 
 addEventListener 'click', set_inactivity_check
 addEventListener 'keydown', -> if current_dialog == 1 then set_inactivity_check()
@@ -155,7 +155,7 @@ main_component = Component
                 set_inactivity_check()
             @setState {dialog}
 
-        yes_shortcut = globalShortcut.register 'CommandOrControl+Alt+Y', =>
+        yes_shortcut = globalShortcut.register settings.global_shortcuts.yes, =>
             if @state.dialog == 0
                 @setState dialog: 1
                 ewin.focus()
@@ -163,15 +163,15 @@ main_component = Component
                     if not log.is_active
                         log.new_entry {active: true, date: Date.now()}
 
-        no_shortcut = globalShortcut.register 'CommandOrControl+Alt+N', =>
+        no_shortcut = globalShortcut.register settings.global_shortcuts.no, =>
             if @state.dialog == 0
                 log.new_entry {active: false, date: show_window_time}
                 hide_window()
 
         if not yes_shortcut
-            console.warn 'Global shorcut in use: CommandOrControl+Alt+Y'
+            console.warn 'Global shorcut in use: ' + settings.global_shortcuts.yes
         if not no_shortcut
-            console.warn 'Global shorcut in use: CommandOrControl+Alt+N'
+            console.warn 'Global shorcut in use: ' + settings.global_shortcuts.no
 
     getInitialState: ->
         dialog: 0

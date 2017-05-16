@@ -9,6 +9,10 @@ isDebug = /^electron/.test app_proccess
 isElectron = /^electron|myou-log/.test  app_proccess
 
 if isElectron
+    {settings, save_settings, load_settings} = require './src/settings'
+    settings_primise = load_settings()
+
+
     {app, BrowserWindow, globalShortcut} = require 'electron'
     if not app? # old electron api
         app = require('app') # Module to control application life.
@@ -19,52 +23,7 @@ if isElectron
     # Keep a global reference of the window object, if you don't, the window will
     # be closed automatically when the JavaScript object is garbage collected.
 
-    MYOU_LOG_SETTINGS = {
-        inactivity_check_interval: 300000,
-        auto_show_window_timeout: 300000,
-        open_on_startup: true,
-    }
-
-    if isDebug
-        MYOU_LOG_SETTINGS.open_on_startup = false
-        MYOU_LOG_SETTINGS.autoOpenDevTools = false
-
-    save_settings = (settings)->
-        data = JSON.stringify settings, null, 4
-        fs.writeFile 'settings.json', data, (err)->
-            if err then console.log err
-            else console.log data
-
-    ensure_settings_file = new Promise (resolve, reject)->
-        if fs.existsSync 'settings.json'
-            fs.readFile 'settings.json', 'utf8', (err, data)->
-                if err
-                    console.log err
-                    console.log 'Using default settings.'
-                else
-                    settings = null
-                    try
-                        settings = JSON.parse(data)
-                        console.log 'Settings file read.'
-                    catch err
-                        settings = MYOU_LOG_SETTINGS
-                        console.log err
-                        console.log 'Using default settings.'
-
-                    for k,v of settings
-                        if not MYOU_LOG_SETTINGS.k?
-                            MYOU_LOG_SETTINGS[k] = v
-
-                    save_settings MYOU_LOG_SETTINGS
-
-                resolve()
-
-        else
-            console.log 'Settings file not found. Generating default settings file:'
-            save_settings MYOU_LOG_SETTINGS
-            resolve()
-
-    create_report_window = ->
+    create_report_window = -> settings_primise.then ->
         options =
             title: 'MyouLog - Report'
             titleBarStyle: 'hidden-inset'
@@ -74,8 +33,15 @@ if isElectron
             protocol: 'file:'
             slashes: true
         win.setMenuBarVisibility false
+        win.settings = settings
+        win.isDebug = isDebug
 
-    create_main_window = ->
+    create_main_window = -> settings_primise.then ->
+        if isDebug
+            settings.open_on_startup = false
+            if not settings.auto_open_dev_tools? then settings.auto_open_dev_tools = false
+            save_settings()
+
         options =
             width: 350
             height: 200
@@ -89,16 +55,9 @@ if isElectron
         # Create the browser window.
         win = new BrowserWindow options
 
-        # Load the html of the app.
-        win.loadURL url.format
-            pathname: path.join __dirname, '/static_files/main_window.html'
-            protocol: 'file:'
-            slashes: true
-
-
         win.setMenuBarVisibility false
         # Open the DevTools.
-        if isDebug and MYOU_LOG_SETTINGS.autoOpenDevTools then win.webContents.openDevTools()
+        if isDebug and settings.auto_open_dev_tools then win.webContents.openDevTools()
 
         # Emitted when the window is closed.
         win.on 'closed', =>
@@ -108,11 +67,15 @@ if isElectron
             win.tray?.destroy()
             win = null
 
-        win.app = app
         win.isDebug = isDebug
         win.create_report_window = create_report_window
-        win.MYOU_LOG_SETTINGS = MYOU_LOG_SETTINGS
+        win.settings = settings
 
+        # Load the html of the app.
+        win.loadURL url.format
+            pathname: path.join __dirname, '/static_files/main_window.html'
+            protocol: 'file:'
+            slashes: true
 
     # Quit when all windows are closed.
     app.on 'window-all-closed', =>
@@ -137,7 +100,7 @@ if isElectron
     # initialization and is ready to create browser windows.
     # Some APIs can only be used after this event occurs.
     app.on 'ready', ->
-        ensure_settings_file.then -> create_main_window()
+        create_main_window()
 else
     electron = require 'electron-prebuilt'
     proc = require 'child_process'
