@@ -1,5 +1,7 @@
 fs = require 'fs'
-
+electron = require 'electron'
+ewin = electron.remote.getCurrentWindow()
+{log_file} = ewin.settings
 class Log
     constructor: (entries=[])->
         @entries = []
@@ -13,21 +15,27 @@ class Log
         @save()
 
     save: ->
-        str_entries = JSON.stringify(@entries, null, 4)
+        str_entries = JSON.stringify(@entries, null, if ewin.isDebug then 4 else null)
         #saving backup
         localStorage.myoulog_backup = str_entries
         console.log 'Saving log file...'
-        fs.writeFile 'log.json', str_entries, (err)->
+        fs.writeFile log_file, str_entries, (err)->
             if err
                 console.log err
             else
-                console.log 'Log file saved!'
+                console.log 'Log file saved here: ', log_file
 
-    add_multiple_entries: (entries=[], save=true)->
-        for e in entries
-            @new_entry e, false
-        if save then @save()
-        return
+    get_reward: (ratio=2/8, date_range=[0,Date.now()])->
+        reward = 0
+        for {active, date}, i in @entries
+            if date_range[1] > date > date_range[0]
+                if active
+                    reward += @get_duration i
+                else
+                    reward -= @get_duration i
+                    reward = Math.max 0, reward
+
+        return reward*ratio
 
     get_duration: (index)->
         entry = @entries[index]
@@ -37,6 +45,11 @@ class Log
         else
             return Date.now() - entry.date
 
+    add_multiple_entries: (entries=[], save=true)->
+        for e in entries
+            @new_entry e, false
+        if save then @save()
+        return
 
     new_entry: (entry, save=true)->
         if entry.active != @is_active
@@ -67,10 +80,14 @@ log = new Log
 log.get_load_promise = ->
     new Promise (resolve, reject) ->
         if fs.existsSync 'log'
-            fs.rename('log', 'log.json')
-            console.log 'Old log file found. Renamed to log.json'
+            fs.rename 'log', log_file
+            console.log 'Old log file found. moved to ' + log_file
 
-        fs.readFile 'log.json', 'utf8', (err, data)->
+        if log_file != 'log.json' and not fs.existsSync(log_file) and fs.existsSync 'log.json'
+            fs.rename 'log.json', log_file
+            console.log 'Moving log.json to ' + log_file
+
+        fs.readFile log_file, 'utf8', (err, data)->
             old_log = []
             if err
                 console.log err
