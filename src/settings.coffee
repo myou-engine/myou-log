@@ -1,4 +1,6 @@
 fs = require 'fs'
+{app} = require 'electron'
+app_data = app.getPath('appData').replace('\\', '/') + '/myou-log/'
 
 new class MyouLogSettings
     constructor: ->
@@ -9,13 +11,13 @@ new class MyouLogSettings
                 yes: 'CommandOrControl+Alt+Y'
                 no: 'CommandOrControl+Alt+N'
             open_on_startup: true
-            log_file: 'log.json'
+            log_file: app_data + 'log.json'
             reward_ratio: 1/4
-            reward_pack: 300000 # 5 min 
+            reward_pack: 300000 # 5 min
 
         @save_settings = save_settings = => new Promise (resolve, reject)=>
             data = JSON.stringify @settings, null, 4
-            fs.writeFile 'settings.json', data, (err)->
+            fs.writeFile app_data + 'settings.json', data, (err)->
                 if err
                     console.log err
                     reject()
@@ -24,8 +26,8 @@ new class MyouLogSettings
                     resolve()
 
         @load_settings = load_settings = => new Promise (resolve, reject)=>
-            if fs.existsSync 'settings.json'
-                fs.readFile 'settings.json', 'utf8', (err, data)=>
+            if fs.existsSync app_data + 'settings.json'
+                fs.readFile app_data + 'settings.json', 'utf8', (err, data)=>
                     if err
                         console.log err
                         console.log 'Using default settings.'
@@ -44,5 +46,6 @@ new class MyouLogSettings
             else
                 save_settings().then ->
                     resolve()
+
 settings = new MyouLogSettings
 module.exports = settings
