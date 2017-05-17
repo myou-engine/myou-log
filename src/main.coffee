@@ -148,6 +148,15 @@ main_component = Component
     componentDidUpdate: ->
         current_dialog = @state.dialog
 
+    componentWillReceiveProps: (next_props)->
+        log_reward = log.get_reward()
+        if @state.dialog == 2
+            if not log_reward
+                @setState {dialog:0}
+        else
+            selected_reward = log_reward
+
+
     componentWillMount: ->
         current_dialog = @state.dialog
 
@@ -186,7 +195,8 @@ main_component = Component
         dialog: 0
         auto_highlight: true
     render: ->
-        selected_reward = Math.min selected_reward, log.get_reward()
+        log_reward = log.get_reward()
+        selected_reward = Math.max settings.reward_pack, Math.min(selected_reward, log_reward)
         auto_highlight = @state.auto_highlight and (auto_hide_time != Infinity)
         if not @state.writing_working_on
             working_on_value = log.last_task
@@ -255,12 +265,13 @@ main_component = Component
                             log.new_entry {active: false, date: show_window_time}
                             hide_window()
 
-                    if log.get_reward()
+                    if log_reward
                         components.button
                             label: 'rest'
                             useHighlight: true
-                            title:"Available time:\n#{format_time log.get_reward()}"
+                            title:"Available time:\n#{format_time log_reward}"
                             onClick: =>
+                                selected_reward = Math.max settings.reward_pack, Math.min selected_reward, log_reward
                                 @setState dialog: 2
 
             ]
@@ -324,12 +335,10 @@ main_component = Component
                     want to rest?
                     "
                 components.slider
-                    min: settings.reward_pack
-                    max: Math.max log.get_reward(), settings.reward_pack
-                    step: Math.min settings.reward_pack, log.get_reward()/4
+                    min: Math.min 1000, settings.reward_pack/5
+                    max: Math.max log_reward, settings.reward_pack
+                    step: Math.min 1000, settings.reward_pack/5
                     allowManualEdit: false
-                    disabled: log.get_reward() <= settings.reward_pack
-                    hideValue: false
                     formatValue: (v)->
                         format_time v
                     read: -> selected_reward
