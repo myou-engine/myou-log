@@ -106,7 +106,7 @@ class Log
             return
 
         activity_changed = active != @is_active
-        task_changed = task != @last_task
+        task_changed = task != @last_entry?.task
         if activity_changed or task_changed
             entry.index = @entries.length
             if activity_changed
