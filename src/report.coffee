@@ -51,7 +51,7 @@ log.get_load_promise().then ->
                 if not e.pause?
                     e.duration = log.get_duration i, final_entries
                     console.log (if e.active then 1 else 0), e.task, e.duration , e.pause
-            first_date = final_entries[0].date
+            first_date = final_entries[0]?.date or 0
             min_date_to = Math.max first_date, @state.date_from
             max_date_from = Math.min date_now, @state.date_to
 
