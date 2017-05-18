@@ -198,7 +198,7 @@ main_component = Component
         auto_highlight: true
     render: ->
         log_reward = log.get_reward()
-        selected_reward = Math.max settings.reward_pack, Math.min(selected_reward, log_reward)
+        selected_reward = Math.min(selected_reward, log_reward)
         auto_highlight = @state.auto_highlight and (auto_hide_time != Infinity)
         if not @state.writing_working_on
             working_on_value = log.last_task
