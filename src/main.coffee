@@ -178,6 +178,7 @@ main_component = Component
             if @state.dialog == 0
                 @setState dialog: 1
                 ewin.focus()
+                set_inactivity_check()
                 set_auto_hide_time 10, ->
                     if not log.is_active
                         log.new_entry {active: true, date: Date.now()}
