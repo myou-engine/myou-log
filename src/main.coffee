@@ -106,9 +106,8 @@ set_inactivity_check = ->
     clearInterval last_check_inactivity_interval
     check_inactivity = ->
         time = (Date.now() - log.last_activity_change.date)
-        if ewin.isVisible() and current_dialog == 0
-            log.new_entry {active:false, date:show_window_time}
-            render_all()
+        set_dialog 0
+        log.new_entry {active:false, date:show_window_time}
         ui_alarm()
 
     last_check_inactivity_interval = setInterval check_inactivity,
