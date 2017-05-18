@@ -7,7 +7,8 @@ class Log
         @entries = []
         @last_entry = null
         @is_active = false
-        @last_activity_change_date = 0
+        @last_activity_change_date = -1
+        @last_activity_change_index = -1
         @add_multiple_entries entries, false
 
     clear: ->
@@ -27,23 +28,63 @@ class Log
 
     get_reward: (date_range=[0,Date.now()])->
         reward = 0
-        for {active, date}, i in @entries
+        last_active = 0
+        for {active, date, pause}, i in @entries
             if date_range[1] > date > date_range[0]
-                if active
-                    reward += @get_duration i
+                if not pause?
+                    last_active = active
+                duration = @_get_segment_duration(i,false)
+                add = true
+                if pause?
+                    if pause
+                        add = false
+                    else
+                        add = last_active
                 else
-                    reward -= 1/reward_ratio * @get_duration i
+                    add = active
+
+                if add
+                    reward += duration
+                else
+                    reward -= 1/reward_ratio * duration
                     reward = Math.max 0, reward
+
 
         return Math.floor((reward * reward_ratio) / reward_pack)*reward_pack
 
-    get_duration: (index)->
+    _get_segment_duration: (index, exclude_pauses=true)->
         entry = @entries[index]
         next_entry = @entries[index + 1]
         if next_entry?
-            return next_entry.date - entry.date
+            if exclude_pauses and entry.pause
+                duration = 0
+            else
+                duration = next_entry.date - entry.date
         else
-            return Date.now() - entry.date
+            duration = Date.now() - entry.date
+        return duration
+
+    get_duration: (index)->
+        duration = 0
+        first = log.entries[index]
+        if not first then return 0
+        for i in [index...log.entries.length]
+            e = log.entries[i]
+            if not e.pause? and ((e.task != first.task) or (e.active != first.active)) then break
+            duration += @_get_segment_duration i
+
+        return duration
+
+    get_activity_duration: (index)->
+        duration = 0
+        first = log.entries[index]
+        if not first then return 0
+        for i in [index...log.entries.length]
+            e = log.entries[i]
+            if not e.pause? and e.active != first.active then break
+            duration += @_get_segment_duration i
+
+        return duration
 
     add_multiple_entries: (entries=[], save=true)->
         for e in entries
@@ -52,23 +93,33 @@ class Log
         return
 
     new_entry: (entry, save=true)->
-        if entry.active != @is_active
+        if entry.pause?
+            new_entry = true
+
+        else if entry.active != @is_active
             @is_active = entry.active
             @last_activity_change_date = entry.date
+            @last_activity_change_index = @entries.length
             new_entry = true
 
         if entry.task? and entry.task != @last_task
             @last_task = entry.task
             new_entry = true
 
-        if entry.active and @last_entry? and entry.task != @last_entry.task
+        if entry.active and @last_entry? and not @last_entry.pause? and entry.task != @last_entry.task
             new_entry = true
 
         if new_entry
-            console.log "%c#{if entry.active then 'working on' else 'distracted'}
-                #{if entry.task then entry.task else if entry.active then 'UNKNOWN' else ''}
-                #{new Date(entry.date).toLocaleString()}",
-                "color:#{if entry.active then 'blue' else 'gray'}"
+            if entry.pause?
+                if entry.pause
+                    console.log "%cPAUSE #{new Date(entry.date).toLocaleString()}", "color:#{'red'}"
+                else
+                    console.log "%cPLAY #{new Date(entry.date).toLocaleString()}", "color:#{'green'}"
+            else
+                console.log "%c#{if entry.active then 'working on' else 'distracted'}
+                    #{if entry.task then entry.task else if entry.active then 'UNKNOWN' else ''}
+                    #{new Date(entry.date).toLocaleString()}",
+                    "color:#{if entry.active then 'blue' else 'gray'}"
             @last_entry = entry
             @entries.push entry
             if save

@@ -89,6 +89,9 @@ show_window = (alarm)->
     show_window_time = Date.now()
     ewin.setAlwaysOnTop true
     clearTimeout show_window_timeout
+    # play again (not pause)
+    if log.last_entry?.pause
+        log.new_entry {pause:false, date:show_window_time, duration: show_window_time - log.last_entry.date}
     ewin.show()
     ewin.blur()
     if alarm
@@ -97,7 +100,6 @@ show_window = (alarm)->
         render_all?()
     set_inactivity_check?()
 
-show_window()
 
 last_check_inactivity_interval = null
 set_inactivity_check = ->
@@ -218,7 +220,8 @@ main_component = Component
         are_you_working_message = 'Are you working?'
 
         date_now = Date.now()
-        time = (date_now - log.last_activity_change_date)
+        time = log.get_activity_duration log.last_activity_change_index
+
         time_since_show_window = date_now - show_window_time
 
         if log.entries.length
@@ -361,7 +364,7 @@ main_component = Component
                         useHighlight:true
                         title: "I'll ask you again after your break time."
                         onClick: =>
-                            log.new_entry {active: false, date: Date.now()}
+                            log.new_entry {pause: true, date: Date.now()}
                             @setState dialog: 0
                             hide_window selected_reward
 
@@ -414,7 +417,8 @@ render_all= ->
 log.get_load_promise().then ->
     log.enable_last_date_checker()
     selected_reward = log.get_reward()
-    render_all()
+    show_window()
+
 
 setInterval render_all, 1000
 
