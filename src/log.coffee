@@ -52,7 +52,7 @@ class Log
 
         return Math.floor((reward * reward_ratio) / reward_pack)*reward_pack
 
-    _get_segment_duration: (index, exclude_pauses=true)->
+    _get_segment_duration: (index, exclude_pauses=true, entries=@entries)->
         entry = @entries[index]
         next_entry = @entries[index + 1]
         if next_entry?
@@ -64,25 +64,25 @@ class Log
             duration = Date.now() - entry.date
         return duration
 
-    get_duration: (index)->
+    get_duration: (index, entries=@entries)->
         duration = 0
         first = log.entries[index]
         if not first then return 0
         for i in [index...log.entries.length]
             e = log.entries[i]
             if not e.pause? and ((e.task != first.task) or (e.active != first.active)) then break
-            duration += @_get_segment_duration i
+            duration += @_get_segment_duration i, false, entries
 
         return duration
 
-    get_activity_duration: (index)->
+    get_activity_duration: (index, entries=@entries)->
         duration = 0
         first = log.entries[index]
         if not first then return 0
         for i in [index...log.entries.length]
             e = log.entries[i]
             if not e.pause? and e.active != first.active then break
-            duration += @_get_segment_duration i
+            duration += @_get_segment_duration i, false, entries
 
         return duration
 
@@ -111,7 +111,7 @@ class Log
             entry.index = @entries.length
             if activity_changed
                 @last_activity_change = entry
-            if task_changed
+            if entry.active and task_changed
                 @last_task = task
             @is_active = active
             @is_paused = false

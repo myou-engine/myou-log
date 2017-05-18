@@ -3,7 +3,7 @@
 {div, form, input} = React.DOM
 log = require './log'
 
-MONTHS = ['January', 'February', 'March', 'April', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 WEEK_DAYS = ['sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 last_date = null
 
@@ -21,40 +21,36 @@ log.get_load_promise().then ->
 
             final_entries = []
             last_was_active = false
-            last_valid_task = null
             last_task = null
-
             date_now = Date.now()
-            # Filling undefined active task and combining entries with adjacent with same task
-            for {active, task, date}, i in log.entries
-                new_entry = false
-                # skiping pauses with duration < 5 min
-                if not active and ((log.entries[i + 1]?.date or date_now) - date) < 300000
-                    active = true
 
+            # Filling undefined active task and combining entries with adjacent with same task
+            for {active, task, date, pause}, i in log.entries
+                if pause?
+                    final_entries.push {pause, date}
+                    continue
+
+                # getting task
                 if active
-                    for ii in [i..log.entries.length]
+                    for ii in [i...log.entries.length]
                         e =log.entries[ii]
                         if e?.task
                             task = e.task
                             break
 
-                if active != last_was_active or last_task != task
-                    new_entry = true
-                    last_was_active = active
-                    if active
+                activity_changed = active != last_was_active
+                task_changed = task != last_task
+                if activity_changed or task_changed
+                    if task_changed
                         last_task = task
+                    last_was_active = active
                     final_entries.push {active, task, date}
-
 
             # Calculating duration
             for e,i in final_entries
-                next_entry = final_entries[i+1]
-                if next_entry?
-                    e.delta = next_entry.date - e.date
-                else
-                    e.delta = date_now - e.date
-
+                if not e.pause?
+                    e.duration = log.get_duration i, final_entries
+                    console.log (if e.active then 1 else 0), e.task, e.duration , e.pause
             first_date = final_entries[0].date
             min_date_to = Math.max first_date, @state.date_from
             max_date_from = Math.min date_now, @state.date_to
@@ -110,7 +106,7 @@ log.get_load_promise().then ->
                             e.target.value = e.target.value or f_max_date_to
                             @setState {date_to: Date.parse(e.target.value)}
 
-                for {active, delta, task, date} in final_entries when @state.date_to + 24*60*60*1000 >= date >= @state.date_from
+                for {active, duration, task, date, pause} in final_entries when not pause? and @state.date_to + 24*60*60*1000 >= date >= @state.date_from
                     date = new Date(date)
 
                     day = date.getDate()
@@ -132,8 +128,14 @@ log.get_load_promise().then ->
                         ]
                         markdown {}, "
                             #{if active then "__#{task or 'Activity'}__&nbsp;&nbsp;-&nbsp;" else "__Inactivity__&nbsp;&nbsp;-&nbsp;"}
-                            #{format_time delta}
+                            #{format_time duration}
                             _(#{date.toLocaleTimeString()})_"]
+
+                # components.button
+                #     useHighlight: true
+                #     onClick: ->
+                #         print()
+                #     label: 'Print report'
 
     # Rendering main_component with ReactDOM in our HTML element `app`
     app = document.getElementById 'app'
