@@ -90,8 +90,8 @@ show_window = (alarm)->
     ewin.setAlwaysOnTop true
     clearTimeout show_window_timeout
     # play again (not pause)
-    if log.last_entry?.pause
-        log.new_entry {pause:false, date:show_window_time, duration: show_window_time - log.last_entry.date}
+    if log.is_paused
+        log.new_entry {pause:false, date:show_window_time}
     ewin.show()
     ewin.blur()
     if alarm
@@ -105,7 +105,7 @@ last_check_inactivity_interval = null
 set_inactivity_check = ->
     clearInterval last_check_inactivity_interval
     check_inactivity = ->
-        time = (Date.now() - log.last_activity_change_date)
+        time = (Date.now() - log.last_activity_change.date)
         if ewin.isVisible() and current_dialog == 0
             log.new_entry {active:false, date:show_window_time}
             render_all()
@@ -220,7 +220,7 @@ main_component = Component
         are_you_working_message = 'Are you working?'
 
         date_now = Date.now()
-        time = log.get_activity_duration log.last_activity_change_index
+        time = log.get_activity_duration log.last_activity_change.index
 
         time_since_show_window = date_now - show_window_time
 

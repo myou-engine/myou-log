@@ -7,8 +7,8 @@ class Log
         @entries = []
         @last_entry = null
         @is_active = false
-        @last_activity_change_date = -1
-        @last_activity_change_index = -1
+        @last_activity_change = null
+        @is_paused = false
         @add_multiple_entries entries, false
 
     clear: ->
@@ -93,37 +93,37 @@ class Log
         return
 
     new_entry: (entry, save=true)->
-        if entry.pause?
-            new_entry = true
-
-        else if entry.active != @is_active
-            @is_active = entry.active
-            @last_activity_change_date = entry.date
-            @last_activity_change_index = @entries.length
-            new_entry = true
-
-        if entry.task? and entry.task != @last_task
-            @last_task = entry.task
-            new_entry = true
-
-        if entry.active and @last_entry? and not @last_entry.pause? and entry.task != @last_entry.task
-            new_entry = true
-
-        if new_entry
-            if entry.pause?
-                if entry.pause
-                    console.log "%cPAUSE #{new Date(entry.date).toLocaleString()}", "color:#{'red'}"
-                else
-                    console.log "%cPLAY #{new Date(entry.date).toLocaleString()}", "color:#{'green'}"
-            else
-                console.log "%c#{if entry.active then 'working on' else 'distracted'}
-                    #{if entry.task then entry.task else if entry.active then 'UNKNOWN' else ''}
-                    #{new Date(entry.date).toLocaleString()}",
-                    "color:#{if entry.active then 'blue' else 'gray'}"
-            @last_entry = entry
+        {active, task, date, pause} = entry
+        if pause?
+            console.log "%c#{if pause then 'PAUSE' else 'PLAY'}
+                #{new Date(date).toLocaleString()}",
+                "color:#{if pause then 'red' else 'green'}"
+            entry.index = @entries.length
+            @is_paused = pause
             @entries.push entry
             if save
                 @save()
+            return
+
+        activity_changed = active != @is_active
+        task_changed = task != @last_task
+        if activity_changed or task_changed
+            entry.index = @entries.length
+            if activity_changed
+                @last_activity_change = entry
+            if task_changed
+                @last_task = task
+            @is_active = active
+            @is_paused = false
+            console.log "%c#{if active then 'working on' else 'distracted'}
+                 #{if task then task else if active then 'UNKNOWN' else ''}
+                 #{new Date(date).toLocaleString()}",
+                 "color:#{if active then 'blue' else 'gray'}"
+            @entries.push entry
+            @last_entry = entry
+            if save
+                @save()
+            return
 
 log = new Log
 
