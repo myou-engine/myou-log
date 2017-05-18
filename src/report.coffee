@@ -1,10 +1,8 @@
-{react_utils, theme, mixins, components, sounds, format_time, markdown} = require './common_ui.coffee'
+{react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common_ui.coffee'
 {Component, React, ReactDOM} = react_utils
 {div, form, input} = React.DOM
 log = require './log'
 
-MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-WEEK_DAYS = ['sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 last_date = null
 
 log.get_load_promise().then ->
@@ -50,7 +48,6 @@ log.get_load_promise().then ->
             for e,i in final_entries
                 if not e.pause?
                     e.duration = log.get_duration i, final_entries
-                    console.log (if e.active then 1 else 0), e.task, e.duration , e.pause
             first_date = final_entries[0]?.date or 0
             min_date_to = Math.max first_date, @state.date_from
             max_date_from = Math.min date_now, @state.date_to
@@ -106,30 +103,26 @@ log.get_load_promise().then ->
                             e.target.value = e.target.value or f_max_date_to
                             @setState {date_to: Date.parse(e.target.value)}
 
-                for {active, duration, task, date, pause} in final_entries when not pause? and @state.date_to + 24*60*60*1000 >= date >= @state.date_from
-                    date = new Date(date)
-
-                    day = date.getDate()
-                    month = MONTHS[date.getMonth()]
-                    week_day = WEEK_DAYS[date.getDay()]
-                    year = date.getFullYear()
-
-                    f_date = "#{week_day}, __#{day} #{month}__ - #{year}"
-                    [if last_date != f_date
-                        last_date = f_date
-                        div {style:{margin:'40px 0 10px 20px'}}, markdown({}, f_date)
-                    div
-                        className: 'entry'
-                        style: [
-                            padding: 10
-                            color: if active then theme.colors.dark else "#bababa"
-                            width: "100%"
-                            marginLeft: 20
-                        ]
-                        markdown {}, "
-                            #{if active then "__#{task or 'Activity'}__&nbsp;&nbsp;-&nbsp;" else "__Inactivity__&nbsp;&nbsp;-&nbsp;"}
-                            #{format_time duration}
-                            _(#{date.toLocaleTimeString()})_"]
+                for {active, duration, task, date, pause} in final_entries when not pause? \
+                    and @state.date_to + 24*60*60*1000 >= date >= @state.date_from
+                        date = moment(date)
+                        f_date = date.format("dddd [__]MMM Do[__ -] YYYY")
+                        [if last_date != f_date
+                            last_date = f_date
+                            div {style:{margin:'40px 0 10px 20px'}}, markdown({}, f_date)
+                        div
+                            className: 'entry'
+                            style: [
+                                padding: 10
+                                color: if active then theme.colors.dark else "#bababa"
+                                width: "100%"
+                                marginLeft: 20
+                            ]
+                            markdown {}, "
+                                #{if active then "__#{task or 'Activity'}__
+                                &nbsp;&nbsp;-&nbsp;" else "__Inactivity__
+                                &nbsp;&nbsp;-&nbsp;"} #{format_time duration}
+                                _(#{date.format('h:mm:ss a')})_"]
 
                 # components.button
                 #     useHighlight: true

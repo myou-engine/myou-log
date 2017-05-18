@@ -4,7 +4,7 @@
 # adding default css code to the document
 require 'myoui/default_fonts'
 require 'myoui/default_animations'
-window.moment = require 'moment'
+window.moment = moment = require 'moment'
 markdown = react_utils.React.createFactory require('react-remarkable')
 theme = new Theme
 window.theme = theme
@@ -105,4 +105,4 @@ format_time = (time=Date.now())->
                     formated_time = "#{days} day#{if days > 1 then 's' else ''} " + formated_time
     return formated_time or '0 sec'
 
-module.exports = {react_utils, theme, mixins, components, sounds, markdown, format_time}
+module.exports = {react_utils, theme, mixins, components, sounds, markdown, format_time, moment}
