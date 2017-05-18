@@ -53,8 +53,8 @@ class Log
         return Math.floor((reward * reward_ratio) / reward_pack)*reward_pack
 
     _get_segment_duration: (index, exclude_pauses=true, entries=@entries)->
-        entry = @entries[index]
-        next_entry = @entries[index + 1]
+        entry = entries[index]
+        next_entry = entries[index + 1]
         if next_entry?
             if exclude_pauses and entry.pause
                 duration = 0
