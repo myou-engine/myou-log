@@ -243,6 +243,7 @@ main_component = Component
             [
                 components.message are_you_working_message
                 div
+                    key: 'yes_no_container'
                     style: [
                         mixins.rowFlex
                         alignSelf: 'center'
@@ -284,6 +285,7 @@ main_component = Component
                     What are you working on?
                     '''
                 div
+                    key: 'waywo_answer'
                     title:"I'll ask you again in 5 minutes"
                     style: [
                         mixins.rowFlex
@@ -338,6 +340,7 @@ main_component = Component
                     want to rest?
                     "
                 components.slider
+                    key: 'reward_slider'
                     min: Math.min 1000, settings.reward_pack/5
                     max: Math.max log_reward, settings.reward_pack
                     step: Math.min 1000, settings.reward_pack/5
@@ -346,7 +349,9 @@ main_component = Component
                         format_time v
                     read: -> selected_reward
                     onSlideEnd: (v)-> selected_reward = v
+
                 div
+                    key: 'cancel_ok_container'
                     style: [
                         mixins.rowFlex
                         alignSelf: 'center'

@@ -4,6 +4,7 @@
 # adding default css code to the document
 require 'myoui/default_fonts'
 require 'myoui/default_animations'
+window.moment = require 'moment'
 markdown = react_utils.React.createFactory require('react-remarkable')
 theme = new Theme
 window.theme = theme
@@ -57,8 +58,9 @@ slider = new myoui.Slider
     ]
 
 {div} = react_utils.React.DOM
-message = (message, custom_style) ->
+message = (message, custom_style, key=Math.floor(1000000*Math.random())) ->
     div
+        key:key
         className: 'myoui'
         style:[
             whiteSpace: 'pre-wrap'
