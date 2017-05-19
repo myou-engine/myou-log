@@ -27,6 +27,10 @@ if isElectron
         options =
             title: 'MyouLog - Report'
             titleBarStyle: 'hidden-inset'
+            width: 600
+            height: 600
+            minWidth: 550
+            minHeight: 200
         win = new BrowserWindow options
         win.loadURL url.format
             pathname: path.join __dirname, '/static_files/report_window.html'

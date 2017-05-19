@@ -51,6 +51,9 @@ button = new myoui.Button
     button:
         maxWidth: 200
 
+switch_element = new myoui.Switch
+
+
 slider = new myoui.Slider
     value: [
         width: 'auto'
@@ -78,7 +81,8 @@ message = (message, custom_style, key=Math.floor(1000000*Math.random())) ->
 components = {
     slider: slider.ui
     button:button.ui
-    text_input: text_input.ui,
+    text_input: text_input.ui
+    switch: switch_element.ui
     message
 }
 

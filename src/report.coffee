@@ -5,134 +5,285 @@ log = require './log'
 
 last_date = null
 
+final_entries = []
+last_was_active = false
+last_task = null
+entries_by_day = {}
+window.days_state = []
+window.days = []
 log.get_load_promise().then ->
+    # Filling undefined active task and combining entries with adjacent with same task
+    for {active, task, date, pause}, i in log.entries
+        if pause?
+            final_entries.push {pause, date}
+            continue
 
-    main_component = Component
-        # componentDidUpdate: ->
-        # componentWillMount: ->
-        getInitialState: ->
-            date_from: 0
-            date_to: Date.now()
+        # getting task
+        if active
+            for ii in [i...log.entries.length]
+                e =log.entries[ii]
+                if e?.task
+                    task = e.task
+                    break
 
-        render: ->
-            group_entries = true # TODO: group by date?
+        activity_changed = active != last_was_active
+        task_changed = task != last_task
+        if activity_changed or task_changed
+            if task_changed
+                last_task = task
+            last_was_active = active
+            final_entries.push {active, task, date}
 
-            final_entries = []
-            last_was_active = false
-            last_task = null
-            date_now = Date.now()
+    # Calculating duration
+    for e,i in final_entries
+        if not e.pause?
+            e.duration = log.get_duration i, final_entries
 
-            # Filling undefined active task and combining entries with adjacent with same task
-            for {active, task, date, pause}, i in log.entries
-                if pause?
-                    final_entries.push {pause, date}
-                    continue
 
-                # getting task
-                if active
-                    for ii in [i...log.entries.length]
-                        e =log.entries[ii]
-                        if e?.task
-                            task = e.task
-                            break
+    for e in final_entries
+        day = Math.floor(e.date/1000/60/60/24)*1000*60*60*24
+        e.details = 0
+        if day not in days
+            days.push day
+            days_state.push {details:0}
+        if entries_by_day[day]?
+            entries_by_day[day].push e
+        else
+            entries_by_day[day] = [e]
 
-                activity_changed = active != last_was_active
-                task_changed = task != last_task
-                if activity_changed or task_changed
-                    if task_changed
-                        last_task = task
-                    last_was_active = active
-                    final_entries.push {active, task, date}
+    render_all()
 
-            # Calculating duration
-            for e,i in final_entries
-                if not e.pause?
-                    e.duration = log.get_duration i, final_entries
-            first_date = final_entries[0]?.date or 0
-            min_date_to = Math.max first_date, @state.date_from
-            max_date_from = Math.min date_now, @state.date_to
 
-            f_min_date_from = new Date(first_date).toJSON().split('T')[0]
-            f_max_date_from = new Date(max_date_from).toJSON().split('T')[0]
-            f_min_date_to = new Date(min_date_to).toJSON().split('T')[0]
-            f_max_date_to = new Date(date_now).toJSON().split('T')[0]
+
+main_component = Component
+    # componentDidUpdate: ->
+    # componentWillMount: ->
+    getInitialState: ->
+        date_from: 0
+        date_to: Date.now()
+
+    render: ->
+        date_now = Date.now()
+
+        group_entries = true # TODO: group by date?
+
+        first_date = final_entries[0]?.date or 0
+        min_date_to = Math.max first_date, @state.date_from
+        max_date_from = Math.min date_now, @state.date_to
+
+        f_min_date_from = new Date(first_date).toJSON().split('T')[0]
+        f_max_date_from = new Date(max_date_from).toJSON().split('T')[0]
+        f_min_date_to = new Date(min_date_to).toJSON().split('T')[0]
+        f_max_date_to = new Date(date_now).toJSON().split('T')[0]
+        div
+            className: 'myoui'
+            style:[
+                theme.fontStyles.p
+                color: theme.colors.t1
+                textShadow: theme.shadows.textWhite
+                overflow: 'hidden'
+                height: '100vh'
+            ]
+            div
+                className: 'form_container'
+                style: [
+                    theme.fontStyles.titleLightS
+                    mixins.rowFlex
+                    mixins.boxShadow '0 5px 10px rgba(0,0,0,0.1)'
+                    width: '100vw'
+                    background: 'white'
+                    position: 'fixed'
+                    justifyContent: 'space-around'
+                    zIndex: 1000
+                ]
+                form
+                    style:[
+                        mixins.rowFlex
+                        width: '100vw'
+                        maxWidth: 600
+                        justifyContent: 'space-around'
+                    ]
+
+                    "Date range"
+                    div
+                        style:[
+                            mixins.rowFlex
+                            theme.fontStyles.p
+                        ]
+                        "from "
+                        input
+                            style:[
+                                padding: 4
+                                margin: 10
+                                borderRadius: theme.radius.r1
+                                background: theme.colors.light
+                                mixins.border3d 0.1, '1px', true
+                                mixins.boxShadow '0 0px 10px rgba(0,0,0,0.1) inset'
+
+                            ]
+
+                            type: 'date'
+                            name: 'date_value'
+                            defaultValue: f_min_date_from
+                            min: f_min_date_from
+                            max: f_max_date_from
+                            onChange: (e)=>
+                                e.target.value = e.target.value or f_min_date_from
+                                @setState {date_from: Date.parse(e.target.value)}
+                    div
+                        style:[
+                            mixins.rowFlex
+                            theme.fontStyles.p
+                        ]
+                        "to"
+                        input
+                            style:[
+                                padding: 4
+                                margin: 10
+                                borderRadius: theme.radius.r1
+                                background: theme.colors.light
+                                mixins.border3d 0.1, '1px', true
+                                mixins.boxShadow '0 0px 10px rgba(0,0,0,0.1) inset'
+
+                            ]
+                            type: 'date'
+                            name: 'date_value'
+                            defaultValue: f_max_date_to
+                            min: f_min_date_to
+                            max: f_max_date_to
+                            onChange: (e)=>
+                                e.target.value = e.target.value or f_max_date_to
+                                @setState {date_to: Date.parse(e.target.value)}
+
+            div
+                id: 'bottom_border_shadow'
+                style:
+                    width: '100vw'
+                    height: 10
+                    pointerEvents: 'none'
+                    position: 'fixed'
+                    bottom: 0
+                    zIndex: 1000
+                    background: "linear-gradient(to top, rgba(0,0,0,0.1) 0%, transparent 100%)"
 
             div
                 id: 'main_container'
-                className: 'myoui'
                 style: [
-                    mixins.columnFlex
+                    # mixins.columnFlex
                     justifyContent: 'flex-start'
                     alignItems: 'flex-start'
-                    top: 20
                     left: 0
-                    minHeight: '100vh'
+                    top: 50
+                    paddingTop: 20
+                    width: '100%'
+                    height: 'calc(100vh - 50px)'
                     borderRadius: 0
-                    # backgroundColor: theme.colors.light
+                    backgroundColor: theme.colors.light
                     position: 'absolute'
-                    # overflowX: 'hidden'
+                    overflowX: 'hidden'
                     WebkitAppRegion: 'drag'
                 ]
-                form
-                    style:
-                        margin: 20
-                    "Date range from "
-                    input
-                        style:
-                            marginLeft: 10
-                            marginRight: 10
-                        type: 'date'
-                        name: 'date_value'
-                        defaultValue: f_min_date_from
-                        min: f_min_date_from
-                        max: f_max_date_from
-                        onChange: (e)=>
-                            e.target.value = e.target.value or f_min_date_from
-                            @setState {date_from: Date.parse(e.target.value)}
-                    "to"
-                    input
-                        style:
-                            marginLeft: 10
-                            marginRight: 10
-                        type: 'date'
-                        name: 'date_value'
-                        defaultValue: f_max_date_to
-                        min: f_min_date_to
-                        max: f_max_date_to
-                        onChange: (e)=>
-                            e.target.value = e.target.value or f_max_date_to
-                            @setState {date_to: Date.parse(e.target.value)}
+                for day,i in days when @state.date_to + 24*60*60*1000 >= day >= @state.date_from
+                    day_state = days_state[i]
+                    date = moment(day)
+                    fdate = date.format("dddd [\n\n__]MMM Do[__ -] YYYY")
 
-                for {active, duration, task, date, pause} in final_entries when not pause? \
-                    and @state.date_to + 24*60*60*1000 >= date >= @state.date_from
-                        date = moment(date)
-                        f_date = date.format("dddd [__]MMM Do[__ -] YYYY")
-                        [if last_date != f_date
-                            last_date = f_date
-                            div {style:{margin:'40px 0 10px 20px'}}, markdown({}, f_date)
+                    day_entries = entries_by_day[day]
+                    total_activity_time = 0
+                    total_inactivity_time = 0
+                    for {active, duration, pause} in day_entries when not pause?
+                        if active then total_activity_time += duration
+                        else total_inactivity_time += duration
+
+                    div
+                        key: 'entry_' + i
+                        style:[
+                            theme.fontStyles.titleLightS
+                            fontSize: 18
+                            width: '100%'
+                            mixins.columnFlex
+                        ]
                         div
-                            className: 'entry'
-                            style: [
-                                padding: 10
-                                color: if active then theme.colors.dark else "#bababa"
-                                width: "100%"
-                                marginLeft: 20
+                            style:[
+                                width: '100%'
+                                mixins.rowFlex
+                                justifyContent: 'space-between'
                             ]
-                            markdown {}, "
-                                #{if active then "__#{task or 'Activity'}__
-                                &nbsp;&nbsp;-&nbsp;" else "__Inactivity__
-                                &nbsp;&nbsp;-&nbsp;"} #{format_time duration}
-                                _(#{date.format('h:mm:ss a')})_"]
+                            div
+                                style:[
+                                    width: '40%'
+                                ]
+                                div
+                                    # className: 'myoui'
+                                    style: [
+                                        paddingLeft:40
 
-                # components.button
-                #     useHighlight: true
-                #     onClick: ->
-                #         print()
-                #     label: 'Print report'
+                                    ]
+                                    markdown {}, fdate
+                            div
+                                style:[
+                                    width: '40%'
+                                ]
+                                div
+                                    key: 'details_' + i
+                                    style:[
+                                        width: 150
+                                    ]
+                                    components.switch
+                                        flip: true
+                                        label: 'detailed'
+                                        read: do(i)->-> days_state[i].details # details state
+                                        write: do(i)->(currentState)->
+                                            render_all()
+                                            days_state[i].details = (currentState + 1) % 2
+                            div
+                                style:[
+                                    width: '20%'
+                                    textAlign: 'center'
+                                ]
+                                div {style: {paddingRight:20}}, format_time total_activity_time
 
-    # Rendering main_component with ReactDOM in our HTML element `app`
-    app = document.getElementById 'app'
-    render_all= ->
-        ReactDOM.render main_component(), app
+                        div
+                            style:[
+                                mixins.columnFlex
+                                mixins.boxShadow '0 5px 10px rgba(0,0,0,0.1)'
+                                theme.fontStyles.p
+                                width: "calc(100% - 80px)"
+                                background: 'white'
+                                padding: 10
+                                margin: '10px 20px 40px 20px'
+                                borderRadius: theme.radius.r2
 
-    render_all()
+                            ]
+                            if days_state[i].details
+                                for e in day_entries when not e.pause?
+                                    console.log e.task
+                                    markdown {}, "
+                                        #{if e.active then "__#{e.task or 'Unknown'}__
+                                        &nbsp;&nbsp;-&nbsp;" else "__Inactivity__
+                                        &nbsp;&nbsp;-&nbsp;"} #{format_time e.duration}
+                                        _(#{moment(e.date).format('h:mm:ss a')})_"
+                            else
+                                collapsed_entries = {}
+                                for e in day_entries
+                                    if e.active
+                                        task = e.task or 'Unknown'
+                                        if collapsed_entries[task]?
+                                            collapsed_entries[task] += e.duration
+                                        else
+                                            collapsed_entries[task] = e.duration
+
+                                for task, duration of collapsed_entries
+                                    markdown {}, "
+                                        __#{task or 'Activity'}__&nbsp;&nbsp;-&nbsp; #{format_time duration}"
+
+            # components.button
+            #     useHighlight: true
+            #     onClick: ->
+            #         print()
+            #     label: 'Print report'
+
+# Rendering main_component with ReactDOM in our HTML element `app`
+app = document.getElementById 'app'
+render_all= ->
+    ReactDOM.render main_component(), app
