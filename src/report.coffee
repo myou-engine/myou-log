@@ -39,17 +39,31 @@ log.get_load_promise().then ->
         if not e.pause?
             e.duration = log.get_duration i, final_entries
 
-
     for e in final_entries
         day = Math.floor(e.date/1000/60/60/24)*1000*60*60*24
         e.details = 0
         if day not in days
             days.push day
-            days_state.push {details:0}
+            days_state.push
+                details:0
+                collapsed_entries:{}
+                activity_duration: 0
+                inactivity_duration: 0
         if entries_by_day[day]?
             entries_by_day[day].push e
         else
             entries_by_day[day] = [e]
+        if e.active
+            task = e.task or 'Unknown'
+            day_state = days_state[days.length-1]
+            day_state.activity_duration += e.duration
+            console.log task
+            if day_state.collapsed_entries[task]?
+                day_state.collapsed_entries[task] += e.duration
+            else
+                day_state.collapsed_entries[task] = e.duration
+        else
+            day_state.inactivity_duration += e.duration
 
     render_all()
 
@@ -184,17 +198,11 @@ main_component = Component
                     WebkitAppRegion: 'drag'
                 ]
                 for day,i in days when @state.date_to + 24*60*60*1000 >= day >= @state.date_from
-                    day_state = days_state[i]
                     date = moment(day)
                     fdate = date.format("dddd [\n\n__]MMM Do[__ -] YYYY")
 
                     day_entries = entries_by_day[day]
-                    total_activity_time = 0
-                    total_inactivity_time = 0
-                    for {active, duration, pause} in day_entries when not pause?
-                        if active then total_activity_time += duration
-                        else total_inactivity_time += duration
-
+                    console.log days_state[i].activity_duration
                     div
                         key: 'entry_' + i
                         style:[
@@ -241,7 +249,7 @@ main_component = Component
                                     width: '20%'
                                     textAlign: 'center'
                                 ]
-                                div {style: {paddingRight:20}}, format_time total_activity_time
+                                div {style: {paddingRight:20}}, format_time days_state[i].activity_duration
 
                         div
                             style:[
@@ -253,27 +261,19 @@ main_component = Component
                                 padding: 10
                                 margin: '10px 20px 40px 20px'
                                 borderRadius: theme.radius.r2
+                                mixins.transition '1s', 'height'
 
                             ]
                             if days_state[i].details
-                                for e in day_entries when not e.pause?
-                                    console.log e.task
+                                for {task, date, duration, active, pause} in day_entries when not pause?
                                     markdown {}, "
-                                        #{if e.active then "__#{e.task or 'Unknown'}__
+                                        #{if active then "__#{task or 'Unknown'}__
                                         &nbsp;&nbsp;-&nbsp;" else "__Inactivity__
-                                        &nbsp;&nbsp;-&nbsp;"} #{format_time e.duration}
-                                        _(#{moment(e.date).format('h:mm:ss a')})_"
-                            else
-                                collapsed_entries = {}
-                                for e in day_entries
-                                    if e.active
-                                        task = e.task or 'Unknown'
-                                        if collapsed_entries[task]?
-                                            collapsed_entries[task] += e.duration
-                                        else
-                                            collapsed_entries[task] = e.duration
+                                        &nbsp;&nbsp;-&nbsp;"} #{format_time duration}
+                                        _(#{moment(date).format('h:mm:ss a')})_"
 
-                                for task, duration of collapsed_entries
+                            else
+                                for task, duration of days_state[i].collapsed_entries
                                     markdown {}, "
                                         __#{task or 'Activity'}__&nbsp;&nbsp;-&nbsp; #{format_time duration}"
 
