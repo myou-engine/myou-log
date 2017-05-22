@@ -29,7 +29,7 @@ if isElectron
             titleBarStyle: 'hidden-inset'
             width: 600
             height: 600
-            minWidth: 550
+            minWidth: 600
             minHeight: 200
         win = new BrowserWindow options
         win.loadURL url.format

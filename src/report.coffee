@@ -1,21 +1,23 @@
 {react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common_ui.coffee'
 {Component, React, ReactDOM} = react_utils
-{div, form, input} = React.DOM
+{div, form, input, b} = React.DOM
 log = require './log'
 
 last_date = null
 
 final_entries = []
-last_was_active = false
-last_task = null
 entries_by_day = {}
 window.days_state = []
 window.days = []
+
 log.get_load_promise().then ->
+    last_was_active = false
+    last_task = null
+    entries = []
     # Filling undefined active task and combining entries with adjacent with same task
     for {active, task, date, pause}, i in log.entries
         if pause?
-            final_entries.push {pause, date}
+            entries.push {pause, date}
             continue
 
         # getting task
@@ -32,12 +34,15 @@ log.get_load_promise().then ->
             if task_changed
                 last_task = task
             last_was_active = active
-            final_entries.push {active, task, date}
+            entries.push {active, task, date}
 
     # Calculating duration
-    for e,i in final_entries
+    for e,i in entries
         if not e.pause?
-            e.duration = log.get_duration i, final_entries
+            e.duration = log.get_duration i, entries
+
+    final_entries = for i in [0...entries.length]
+        entries.pop()
 
     for e in final_entries
         day = Math.floor(e.date/1000/60/60/24)*1000*60*60*24
@@ -64,7 +69,6 @@ log.get_load_promise().then ->
                 day_state.collapsed_entries[task] = e.duration
         else
             day_state.inactivity_duration += e.duration
-
     render_all()
 
 
@@ -81,7 +85,7 @@ main_component = Component
 
         group_entries = true # TODO: group by date?
 
-        first_date = final_entries[0]?.date or 0
+        first_date = final_entries[final_entries.length-1]?.date or 0
         min_date_to = Math.max first_date, @state.date_from
         max_date_from = Math.min date_now, @state.date_to
 
@@ -114,8 +118,9 @@ main_component = Component
                     style:[
                         mixins.rowFlex
                         width: '100vw'
-                        maxWidth: 600
+                        maxWidth: 1000
                         justifyContent: 'space-around'
+                        padding: '0 40px 0 40px'
                     ]
 
                     "Date range"
@@ -183,9 +188,6 @@ main_component = Component
             div
                 id: 'main_container'
                 style: [
-                    # mixins.columnFlex
-                    justifyContent: 'flex-start'
-                    alignItems: 'flex-start'
                     left: 0
                     top: 50
                     paddingTop: 20
@@ -202,13 +204,14 @@ main_component = Component
                     fdate = date.format("dddd [\n\n__]MMM Do[__ -] YYYY")
 
                     day_entries = entries_by_day[day]
-                    console.log days_state[i].activity_duration
                     div
                         key: 'entry_' + i
                         style:[
                             theme.fontStyles.titleLightS
                             fontSize: 18
                             width: '100%'
+                            maxWidth: 900
+                            margin: '0 auto 0 auto'
                             mixins.columnFlex
                         ]
                         div
@@ -230,7 +233,7 @@ main_component = Component
                                     markdown {}, fdate
                             div
                                 style:[
-                                    width: '40%'
+                                    width: '20%'
                                 ]
                                 div
                                     key: 'details_' + i
@@ -246,8 +249,9 @@ main_component = Component
                                             days_state[i].details = (currentState + 1) % 2
                             div
                                 style:[
-                                    width: '20%'
-                                    textAlign: 'center'
+                                    width: '40%'
+                                    textAlign: 'right'
+                                    paddingRight: 20
                                 ]
                                 div {style: {paddingRight:20}}, format_time days_state[i].activity_duration
 
@@ -265,17 +269,88 @@ main_component = Component
 
                             ]
                             if days_state[i].details
-                                for {task, date, duration, active, pause} in day_entries when not pause?
-                                    markdown {}, "
-                                        #{if active then "__#{task or 'Unknown'}__
-                                        &nbsp;&nbsp;-&nbsp;" else "__Inactivity__
-                                        &nbsp;&nbsp;-&nbsp;"} #{format_time duration}
-                                        _(#{moment(date).format('h:mm:ss a')})_"
+                                for {task, date, duration, active, pause}, ii in day_entries when not pause?
+                                    div
+                                        style:
+                                            width: '100%'
+                                        div
+                                            style:[
+                                                mixins.rowFlex
+                                                opacity: if active then 1 else 0.5
+                                                width: '100%'
+                                                justifyContent: 'space-between'
+                                                padding: '10px 20px 10px 20px'
+                                            ]
+                                            div
+                                                style:[
+                                                ]
+                                                b {}, if active then task or 'Unknown' else "inactivity"
+                                            div
+                                                style:[
+                                                    mixins.rowFlex
+                                                    justifyContent: 'flex-end'
+                                                ]
+                                                div
+                                                    style:[
+                                                        textAlign: 'right'
+                                                        overflow: 'hidden'
+                                                    ]
+                                                    div
+                                                        format_time duration
+                                                div
+                                                    style:[
+                                                        textAlign: 'right'
+                                                        fontSize: 12
+                                                        fontWeight: 100
+                                                        width: 80
+                                                    ]
+                                                    div
+                                                        style: []
+                                                        moment(date).format('hh:mm:ss a')
+
+                                        if ii+1 < day_entries.length
+                                            div
+                                                style:
+                                                    borderBottom: "1px solid #{theme.colors.light}"
+                                                    width: 'calc(100% - 40px)'
+                                                    marginLeft: 20
+
 
                             else
+                                length = Object.keys(days_state[i].collapsed_entries).length
+                                ii = 0
                                 for task, duration of days_state[i].collapsed_entries
-                                    markdown {}, "
-                                        __#{task or 'Activity'}__&nbsp;&nbsp;-&nbsp; #{format_time duration}"
+                                    ii++
+                                    div
+                                        style:
+                                            width: '100%'
+                                        div
+                                            style:[
+                                                mixins.rowFlex
+                                                # borderBottom: "1px solid #{theme.colors.light}"
+                                                width: '100%'
+                                                justifyContent: 'space-between'
+                                                padding: '10px 20px 10px 20px'
+                                            ]
+                                            div
+                                                style:[
+                                                ]
+                                                b {}, task or 'Unknown'
+
+                                            div
+                                                style:[
+                                                    textAlign: 'right'
+                                                    overflow: 'hidden'
+                                                ]
+                                                div
+                                                    format_time duration
+
+                                        if ii < length
+                                            div
+                                                style:
+                                                    borderBottom: "1px solid #{theme.colors.light}"
+                                                    width: 'calc(100% - 40px)'
+                                                    marginLeft: 20
 
             # components.button
             #     useHighlight: true
