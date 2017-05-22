@@ -16,6 +16,7 @@
     "coffee-script": "^1.12.5",
     "create-react-class": "^15.5.2",
     "json-loader": "^0.5.4",
+    "moment": "^2.18.1",
     "myou-engine": "^0.4.1",
     "myoui": "^0.0.6",
     "raw-loader": "^0.5.1",
