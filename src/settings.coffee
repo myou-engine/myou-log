@@ -10,6 +10,8 @@ new class MyouLogSettings
             global_shortcuts:
                 yes: 'CommandOrControl+Alt+Y'
                 no: 'CommandOrControl+Alt+N'
+                main_window: 'CommandOrControl+Alt+Q'
+                report_window: 'CommandOrControl+Alt+R'
             open_on_startup: true
             log_file: app_data + 'log.json'
             reward_ratio: 1/4

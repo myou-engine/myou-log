@@ -100,6 +100,16 @@ show_window = (alarm)->
         render_all?()
     set_inactivity_check?()
 
+show_main_window_shortcut = globalShortcut.register settings.global_shortcuts.main_window, ->
+    set_dialog 0
+    show_window()
+show_report_window_shortcut = globalShortcut.register settings.global_shortcuts.report_window, ->
+    ewin.create_report_window()
+
+if not show_main_window_shortcut
+    console.warn 'Global shorcut in use: ' + settings.global_shortcuts.main_window
+if not show_report_window_shortcut
+    console.warn 'Global shorcut in use: ' + settings.global_shortcuts.report_window
 
 last_check_inactivity_interval = null
 set_inactivity_check = ->
