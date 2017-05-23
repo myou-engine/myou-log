@@ -92,8 +92,49 @@ class Log
         if save then @save()
         return
 
+    get_clean_entries: (entries=@entries)->
+        # Filling undefined active task and combining entries with adjacent with same task
+        output = []
+        last_date = 0
+        for {active, task, date, pause}, i in entries
+            if entries[i+1]? and date >= entries[i+1].date
+                continue
+
+            if pause?
+                output.push {pause, date}
+                continue
+
+            # getting task
+            if active
+                for ii in [i...entries.length]
+                    e = entries[ii]
+                    if e?.task
+                        task = e.task
+                        break
+
+            activity_changed = active != last_was_active
+            task_changed = task != last_task
+            if activity_changed or task_changed
+                if task_changed
+                    last_task = task
+                last_was_active = active
+                last_date = date
+                output.push {active, task, date}
+
+        return output
+
+    add_duration: (entries=@entries)->
+        for e,i in entries
+            if not e.pause?
+                e.duration = @get_duration i, entries
+
     new_entry: (entry, save=true)->
         {active, task, date, pause} = entry
+        if @last_entry and entry.date < @last_entry.date
+            # Avoid negative entries
+            # TODO: try to reproduce bug that causes this
+            entry.date = date = Math.max date, @last_entry.date
+
         if pause?
             console.log "%c#{if pause then 'PAUSE' else 'PLAY'}
                 #{new Date(date).toLocaleString()}",
@@ -158,16 +199,19 @@ log.get_load_promise = ->
 
             resolve()
 
-log.enable_last_date_checker = ->
+interruption_check = ->
     # using saved date from localStorage.myoulog_last_date
     # to create a new inactivity entry
     if localStorage.myoulog_last_date?
         last_date = parseInt localStorage.myoulog_last_date
         if (Date.now() - last_date) > inactivity_check_interval
-            log.new_entry {active:false, date:last_date}
+            log.new_entry {active:false, date:last_date, auto: true}
 
+log.enable_last_date_checker = ->
+    interruption_check()
     # Saving date on localStorage.myoulog_last_date
     save_last_date = ->
+        interruption_check()
         localStorage.myoulog_last_date = Date.now()
     setInterval save_last_date, 1000
 

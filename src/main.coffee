@@ -263,6 +263,7 @@ main_component = Component
                         useHighlight:true
                         title: "Global Shortcut: #{settings.global_shortcuts.yes}"
                         onClick: =>
+                            set_inactivity_check()
                             @setState dialog: 1
                             set_auto_hide_time 10, ->
                                 if not log.is_active

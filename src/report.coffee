@@ -13,34 +13,11 @@ window.days = []
 log.get_load_promise().then ->
     last_was_active = false
     last_task = null
-    entries = []
-    # Filling undefined active task and combining entries with adjacent with same task
-    for {active, task, date, pause}, i in log.entries
-        if pause?
-            entries.push {pause, date}
-            continue
 
-        # getting task
-        if active
-            for ii in [i...log.entries.length]
-                e =log.entries[ii]
-                if e?.task
-                    task = e.task
-                    break
+    entries = log.get_clean_entries()
+    log.add_duration(entries)
 
-        activity_changed = active != last_was_active
-        task_changed = task != last_task
-        if activity_changed or task_changed
-            if task_changed
-                last_task = task
-            last_was_active = active
-            entries.push {active, task, date}
-
-    # Calculating duration
-    for e,i in entries
-        if not e.pause?
-            e.duration = log.get_duration i, entries
-
+    # invert entries
     final_entries = for i in [0...entries.length]
         entries.pop()
 
@@ -58,20 +35,19 @@ log.get_load_promise().then ->
             entries_by_day[day].push e
         else
             entries_by_day[day] = [e]
+        day_state = days_state[days.length-1]
         if e.active
             task = e.task or 'Unknown'
-            day_state = days_state[days.length-1]
             day_state.activity_duration += e.duration
             console.log task
             if day_state.collapsed_entries[task]?
                 day_state.collapsed_entries[task] += e.duration
             else
                 day_state.collapsed_entries[task] = e.duration
+
         else
             day_state.inactivity_duration += e.duration
     render_all()
-
-
 
 main_component = Component
     # componentDidUpdate: ->
