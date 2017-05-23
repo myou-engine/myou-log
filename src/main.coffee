@@ -19,6 +19,17 @@ addEventListener 'keydown', (event)->
     if event.keyCode == 123
         ewin.webContents.openDevTools({mode:'detach'})
 
+report_window_promise = null
+show_report_window = ->
+    if report_window_promise
+        report_window_promise.then (w)->
+            w.on 'closed', ->
+                report_window_promise = null
+            w.show()
+    else
+        report_window_promise = ewin.create_report_window()
+
+
 settings = ewin.settings
 window.$settings = settings
 
@@ -42,14 +53,14 @@ path = require 'path'
 trayMenuTemplate = [
 
     {
-       label: 'Show app',
+       label: 'questions window',
        click: ->
           show_window()
     }
     {
-       label: 'Report viewer',
+       label: 'report viewer',
        click: ->
-          ewin.create_report_window()
+          show_report_window()
     }
     {
        label: 'Quit',
@@ -108,7 +119,7 @@ show_main_window_shortcut = globalShortcut.register settings.global_shortcuts.ma
     set_dialog 0
     show_window()
 show_report_window_shortcut = globalShortcut.register settings.global_shortcuts.report_window, ->
-    ewin.create_report_window()
+    show_report_window()
 
 if not show_main_window_shortcut
     console.warn 'Global shorcut in use: ' + settings.global_shortcuts.main_window

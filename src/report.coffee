@@ -7,13 +7,24 @@ last_date = null
 
 final_entries = []
 entries_by_day = {}
-window.days_state = []
-window.days = []
+days_state = []
+days = []
 
-log.get_load_promise().then ->
+addEventListener 'keydown', (event)->
+    if event.keyCode == 123
+        ewin.webContents.openDevTools({mode:'detach'})
+    if (event.ctrlKey and event.keyCode == 82) or event.keyCode == 116 # ctrl + r or F5
+        event.preventDefault()
+        update_report()
+
+load_log = ->
+    final_entries = []
+    entries_by_day = {}
+    days_state = []
+    days = []
+
     last_was_active = false
     last_task = null
-
     entries = log.get_clean_entries()
     log.add_duration(entries)
 
@@ -39,7 +50,6 @@ log.get_load_promise().then ->
         if e.active
             task = e.task or 'Unknown'
             day_state.activity_duration += e.duration
-            console.log task
             if day_state.collapsed_entries[task]?
                 day_state.collapsed_entries[task] += e.duration
             else
@@ -48,6 +58,11 @@ log.get_load_promise().then ->
         else
             day_state.inactivity_duration += e.duration
     render_all()
+
+update_report = ->
+    log.get_load_promise().then load_log
+update_report()
+
 
 main_component = Component
     # componentDidUpdate: ->

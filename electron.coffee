@@ -39,6 +39,7 @@ if isElectron
         win.setMenuBarVisibility false
         win.settings = settings
         win.isDebug = isDebug
+        return Promise.resolve(win)
 
     create_main_window = -> settings_primise.then ->
         if isDebug
@@ -82,6 +83,7 @@ if isElectron
             pathname: path.join __dirname, '/static_files/main_window.html'
             protocol: 'file:'
             slashes: true
+
 
     # Quit when all windows are closed.
     app.on 'window-all-closed', =>
