@@ -10,8 +10,7 @@ isElectron = /^electron|myou-log/.test  app_proccess
 
 if isElectron
     {settings, save_settings, load_settings} = require './src/settings'
-    settings_primise = load_settings()
-
+    load_settings()
 
     {app, BrowserWindow, globalShortcut} = require 'electron'
     if not app? # old electron api
@@ -20,18 +19,20 @@ if isElectron
     path = require 'path'
     url = require 'url'
 
+    created_windows = []
+
     # Keep a global reference of the window object, if you don't, the window will
     # be closed automatically when the JavaScript object is garbage collected.
 
-    create_report_window = -> settings_primise.then ->
+    create_report_window = ->
         options =
             title: 'MyouLog - Report'
-            titleBarStyle: 'hidden-inset'
             width: 600
             height: 600
             minWidth: 600
             minHeight: 200
         win = new BrowserWindow options
+        win.recreate = create_report_window
         win.loadURL url.format
             pathname: path.join __dirname, '/static_files/report_window.html'
             protocol: 'file:'
@@ -39,13 +40,19 @@ if isElectron
         win.setMenuBarVisibility false
         win.settings = settings
         win.isDebug = isDebug
-        return Promise.resolve(win)
+        return win
 
-    create_main_window = -> settings_primise.then ->
+    create_main_window = ->
         if isDebug
-            settings.open_on_startup = false
-            if not settings.auto_open_dev_tools? then settings.auto_open_dev_tools = false
-            save_settings()
+            save = false
+            if settings.open_on_startup
+                settings.open_on_startup = false
+                save = true
+            if not settings.auto_open_dev_tools?
+                settings.auto_open_dev_tools = false
+                save = true
+            if save
+                save_settings()
 
         options =
             width: 350
@@ -75,7 +82,9 @@ if isElectron
             win = null
 
         win.isDebug = isDebug
+        win.recreate = create_main_window
         win.create_report_window = create_report_window
+        win.load_settings = load_settings
         win.settings = settings
 
         # Load the html of the app.
@@ -83,7 +92,7 @@ if isElectron
             pathname: path.join __dirname, '/static_files/main_window.html'
             protocol: 'file:'
             slashes: true
-
+        return win
 
     # Quit when all windows are closed.
     app.on 'window-all-closed', =>

@@ -19,18 +19,15 @@ new class MyouLogSettings
             reward_ratio: 1/4
             reward_pack: 300000 # 5 min
 
-        @save_settings = save_settings = => new Promise (resolve, reject)=>
+        @save_settings = save_settings = =>
             data = JSON.stringify @settings, null, 4
-            fs.writeFile app_data + 'settings.json', data, (err)->
-                if err
-                    console.log err
-                    reject()
-                else
-                    console.log 'Saving settings:\n' + data
-                    resolve()
+            try
+                fs.writeFileSync app_data + 'settings.json', data
+                console.log 'Saving settings:\n' + data
+            catch err
+                console.log err
 
-
-        @load_settings = load_settings = => new Promise (resolve, reject)=>
+        @load_settings = load_settings = =>
             combine_changes = (original, changes)->
                 for k,v of changes
                     if not original[k]?
@@ -41,24 +38,16 @@ new class MyouLogSettings
                         original[k] = v
 
             if fs.existsSync app_data + 'settings.json'
-                fs.readFile app_data + 'settings.json', 'utf8', (err, data)=>
-                    if err
-                        console.log err
-                        console.log 'Using default settings.'
-                    else
-                        try
-                            old_settings = JSON.parse(data)
-                            combine_changes(@settings, old_settings)
-                            console.log 'Settings file read.'
-                        catch err
-                            console.log err
-                            console.log 'Using default settings.'
+                try
+                    data = fs.readFileSync(app_data + 'settings.json', 'utf8').toString()
+                    old_settings = JSON.parse(data)
+                    combine_changes(@settings, old_settings)
+                    console.log 'Settings file read.'
+                catch err
+                    console.log err
+                    console.log 'Using default settings.'
 
-                        save_settings().then ->
-                            resolve()
-            else
-                save_settings().then ->
-                    resolve()
+            save_settings()
 
 settings = new MyouLogSettings
 module.exports = settings

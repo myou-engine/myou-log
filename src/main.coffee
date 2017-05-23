@@ -14,42 +14,81 @@ ewin = electron.remote.getCurrentWindow()
 window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
+{Tray, Menu, app, globalShortcut} = electron.remote
+path = require 'path'
 
 addEventListener 'keydown', (event)->
     if event.keyCode == 123
         ewin.webContents.openDevTools({mode:'detach'})
 
-report_window_promise = null
+report_window = null
 show_report_window = ->
-    if report_window_promise
-        report_window_promise.then (w)->
-            w.on 'closed', ->
-                report_window_promise = null
-            w.show()
+    if report_window
+        report_window.show()
     else
-        report_window_promise = ewin.create_report_window()
-
-
-settings = ewin.settings
-window.$settings = settings
+        report_window = ewin.create_report_window()
+        report_window.on 'closed', ->
+            report_window = null
 
 AutoLaunch = require 'auto-launch'
 auto_launcher = window.auto_launcher = new AutoLaunch
     name: 'myou-log'
 
-if settings.open_on_startup
-    auto_launcher.isEnabled().then (enabled)->
-        if not enabled
-            auto_launcher.enable().then ()->
-                console.log 'Open on system startup ENABLED'
-else
-    auto_launcher.isEnabled().then (enabled)->
-        if enabled
-            auto_launcher.disable().then ()->
-                console.log 'Open on system startup DISABLED'
 
-{Tray, Menu, app, globalShortcut} = electron.remote
-path = require 'path'
+settings = ewin.settings
+window.$settings = settings
+
+window.load_settings = ->
+    ewin.load_settings()
+    apply_settings()
+    show_window()
+
+show_main_window_shortcut = false
+show_report_window_shortcut = false
+yes_shortcut = false
+no_shortcut = false
+apply_settings = ->
+    clearTimeout show_window_timeout
+    clearInterval last_check_inactivity_interval
+
+    if settings.open_on_startup
+        auto_launcher.isEnabled().then (enabled)->
+            if not enabled
+                auto_launcher.enable().then ()->
+                    console.log 'Open on system startup ENABLED'
+    else
+        auto_launcher.isEnabled().then (enabled)->
+            if enabled
+                auto_launcher.disable().then ()->
+                    console.log 'Open on system startup DISABLED'
+
+    if show_main_window_shortcut
+        globalShortcut.unregister show_main_window_shortcut
+    if show_report_window_shortcut
+        globalShortcut.unregister show_report_window_shortcut
+    if yes_shortcut
+        globalShortcut.unregister yes_shortcut
+    if no_shortcut
+        globalShortcut.unregister no_shortcut
+
+    main_registered = globalShortcut.register settings.global_shortcuts.main_window, ->
+        set_dialog 0
+        show_window()
+    report_registered = globalShortcut.register settings.global_shortcuts.report_window, ->
+        show_report_window()
+    if main_registered
+        show_main_window_shortcut = settings.global_shortcuts.main_window
+    else
+        show_main_window_shortcut = false
+        console.warn 'Global shorcut in use: ' + settings.global_shortcuts.main_window
+    if report_registered
+        show_report_window_shortcut = settings.global_shortcuts.main_window
+    else
+        show_report_window_shortcut = false
+        console.warn 'Global shorcut in use: ' + settings.global_shortcuts.report_window
+
+apply_settings()
+
 trayMenuTemplate = [
 
     {
@@ -115,16 +154,7 @@ show_window = (alarm)->
         render_all?()
     set_inactivity_check?()
 
-show_main_window_shortcut = globalShortcut.register settings.global_shortcuts.main_window, ->
-    set_dialog 0
-    show_window()
-show_report_window_shortcut = globalShortcut.register settings.global_shortcuts.report_window, ->
-    show_report_window()
 
-if not show_main_window_shortcut
-    console.warn 'Global shorcut in use: ' + settings.global_shortcuts.main_window
-if not show_report_window_shortcut
-    console.warn 'Global shorcut in use: ' + settings.global_shortcuts.report_window
 
 last_check_inactivity_interval = null
 set_inactivity_check = ->
@@ -199,7 +229,7 @@ main_component = Component
                 set_inactivity_check()
             @setState {dialog}
 
-        yes_shortcut = globalShortcut.register settings.global_shortcuts.yes, =>
+        yes_sc = globalShortcut.register settings.global_shortcuts.yes, =>
             if @state.dialog == 0
                 @setState dialog: 1
                 ewin.focus()
@@ -208,14 +238,20 @@ main_component = Component
                     if not log.is_active
                         log.new_entry {active: true, date: Date.now()}
 
-        no_shortcut = globalShortcut.register settings.global_shortcuts.no, =>
+        no_sc = globalShortcut.register settings.global_shortcuts.no, =>
             if @state.dialog == 0
                 log.new_entry {active: false, date: show_window_time}
                 hide_window()
 
-        if not yes_shortcut
+        if yes_sc
+            yes_shortcut = settings.global_shortcuts.yes
+        else
+            yes_shortcut = false
             console.warn 'Global shorcut in use: ' + settings.global_shortcuts.yes
-        if not no_shortcut
+        if no_sc
+            no_shortcut = settings.global_shortcuts.no
+        else
+            no_shortcut = false
             console.warn 'Global shorcut in use: ' + settings.global_shortcuts.no
 
     getInitialState: ->
