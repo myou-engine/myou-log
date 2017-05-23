@@ -3,6 +3,8 @@ fs = require 'fs'
 app_data = app.getPath('appData').replace('\\', '/') + '/myou-log/'
 
 new class MyouLogSettings
+
+
     constructor: ->
         @settings = settings =
             inactivity_check_interval: 300000
@@ -27,7 +29,17 @@ new class MyouLogSettings
                     console.log 'Saving settings:\n' + data
                     resolve()
 
+
         @load_settings = load_settings = => new Promise (resolve, reject)=>
+            combine_changes = (original, changes)->
+                for k,v of changes
+                    if not original[k]?
+                        original[k] = v
+                    else if typeof(v) == 'object'
+                        combine_changes original[k], v
+                    else
+                        original[k] = v
+
             if fs.existsSync app_data + 'settings.json'
                 fs.readFile app_data + 'settings.json', 'utf8', (err, data)=>
                     if err
@@ -36,8 +48,7 @@ new class MyouLogSettings
                     else
                         try
                             old_settings = JSON.parse(data)
-                            for k,v of old_settings
-                                @settings[k] = v
+                            combine_changes(@settings, old_settings)
                             console.log 'Settings file read.'
                         catch err
                             console.log err
