@@ -27,11 +27,15 @@ auto_launcher = window.auto_launcher = new AutoLaunch
     name: 'myou-log'
 
 if settings.open_on_startup
-    auto_launcher.enable().then ()->
-        console.log 'Open on system startup ENABLED'
+    auto_launcher.isEnabled().then (enabled)->
+        if not enabled
+            auto_launcher.enable().then ()->
+                console.log 'Open on system startup ENABLED'
 else
-    console.log 'Open on system startup DISABLED'
-    auto_launcher.disable()
+    auto_launcher.isEnabled().then (enabled)->
+        if enabled
+            auto_launcher.disable().then ()->
+                console.log 'Open on system startup DISABLED'
 
 {Tray, Menu, app, globalShortcut} = electron.remote
 path = require 'path'
