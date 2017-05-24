@@ -14,6 +14,11 @@ ewin = electron.remote.getCurrentWindow()
 window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
+
+ewin.on 'close', ()->
+    report_window?.close()
+    settings_window?.close()
+
 {Tray, Menu, app, globalShortcut} = electron.remote
 path = require 'path'
 
@@ -30,23 +35,33 @@ show_report_window = ->
         report_window.on 'closed', ->
             report_window = null
 
+settings_window = null
+show_settings_window = ->
+    if settings_window
+        settings_window.show()
+    else
+        settings_window = ewin.create_settings_window()
+        settings_window.on 'closed', ->
+            settings_window = null
+
 AutoLaunch = require 'auto-launch'
 auto_launcher = window.auto_launcher = new AutoLaunch
     name: 'myou-log'
 
 
-settings = ewin.settings
-window.$settings = settings
+{settings, add_post_save_callback} = ewin
 
-window.load_settings = ->
-    ewin.load_settings()
+add_post_save_callback ->
     apply_settings()
     show_window()
 
+
 show_main_window_shortcut = false
 show_report_window_shortcut = false
+show_settings_window_shortcut = false
 yes_shortcut = false
 no_shortcut = false
+
 apply_settings = ->
     clearTimeout show_window_timeout
     clearInterval last_check_inactivity_interval
@@ -66,6 +81,8 @@ apply_settings = ->
         globalShortcut.unregister show_main_window_shortcut
     if show_report_window_shortcut
         globalShortcut.unregister show_report_window_shortcut
+    if show_settings_window_shortcut
+        globalShortcut.unregister show_settings_window_shortcut
     if yes_shortcut
         globalShortcut.unregister yes_shortcut
     if no_shortcut
@@ -74,15 +91,16 @@ apply_settings = ->
     main_registered = globalShortcut.register settings.global_shortcuts.main_window, ->
         set_dialog 0
         show_window()
-    report_registered = globalShortcut.register settings.global_shortcuts.report_window, ->
-        show_report_window()
+    report_registered = globalShortcut.register settings.global_shortcuts.report_window, show_report_window
+    settings_registered = globalShortcut.register settings.global_shortcuts.settings_window, show_settings_window
+
     if main_registered
         show_main_window_shortcut = settings.global_shortcuts.main_window
     else
         show_main_window_shortcut = false
         console.warn 'Global shorcut in use: ' + settings.global_shortcuts.main_window
     if report_registered
-        show_report_window_shortcut = settings.global_shortcuts.main_window
+        show_report_window_shortcut = settings.global_shortcuts.report_window
     else
         show_report_window_shortcut = false
         console.warn 'Global shorcut in use: ' + settings.global_shortcuts.report_window
@@ -92,14 +110,19 @@ apply_settings()
 trayMenuTemplate = [
 
     {
-       label: 'questions window',
+       label: 'Show questions',
        click: ->
           show_window()
     }
     {
-       label: 'report viewer',
+       label: 'Show report',
        click: ->
           show_report_window()
+    }
+    {
+       label: 'Show settings',
+       click: ->
+          show_settings_window()
     }
     {
        label: 'Quit',

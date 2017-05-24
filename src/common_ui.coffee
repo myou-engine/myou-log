@@ -78,13 +78,17 @@ message = (message, custom_style, key=Math.floor(1000000*Math.random())) ->
         ]
         message
 
+
 components = {
     slider: slider.ui
     button:button.ui
     text_input: text_input.ui
     switch: switch_element.ui
     message
+    update: ->
+        slider.update()
 }
+
 
 sounds = {
     notification: new Audio('sounds/notification.mp3')

@@ -9,7 +9,8 @@ isDebug = /^electron/.test app_proccess
 isElectron = /^electron|myou-log/.test  app_proccess
 
 if isElectron
-    {settings, save_settings, load_settings} = require './src/settings'
+    {settings, save_settings, load_settings,
+    apply_default_settings, add_post_save_callback} = require './src/settings'
     load_settings()
 
     {app, BrowserWindow, globalShortcut} = require 'electron'
@@ -23,6 +24,27 @@ if isElectron
 
     # Keep a global reference of the window object, if you don't, the window will
     # be closed automatically when the JavaScript object is garbage collected.
+
+    create_settings_window = ->
+        options =
+            title: 'MyouLog - Settings'
+            width: 600
+            height: 600
+            minWidth: 600
+            minHeight: 200
+        win = new BrowserWindow options
+        win.recreate = create_settings_window
+        win.loadURL url.format
+            pathname: path.join __dirname, '/static_files/settings_window.html'
+            protocol: 'file:'
+            slashes: true
+        win.setMenuBarVisibility false
+        win.settings = settings
+        win.load_settings = load_settings
+        win.save_settings = save_settings
+        win.apply_default_settings = apply_default_settings
+        win.isDebug = isDebug
+        return win
 
     create_report_window = ->
         options =
@@ -44,15 +66,7 @@ if isElectron
 
     create_main_window = ->
         if isDebug
-            save = false
-            if settings.open_on_startup
-                settings.open_on_startup = false
-                save = true
-            if not settings.auto_open_dev_tools?
-                settings.auto_open_dev_tools = false
-                save = true
-            if save
-                save_settings()
+            save_settings(settings, true)
 
         options =
             width: 350
@@ -84,6 +98,8 @@ if isElectron
         win.isDebug = isDebug
         win.recreate = create_main_window
         win.create_report_window = create_report_window
+        win.create_settings_window = create_settings_window
+        win.add_post_save_callback = add_post_save_callback
         win.load_settings = load_settings
         win.settings = settings
 
