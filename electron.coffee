@@ -32,6 +32,8 @@ if isElectron
             height: 600
             minWidth: 600
             minHeight: 200
+            icon: path.join(__dirname, 'assets/icons/png/64x64.png')
+
         win = new BrowserWindow options
         win.recreate = create_settings_window
         win.loadURL url.format
@@ -53,6 +55,8 @@ if isElectron
             height: 600
             minWidth: 600
             minHeight: 200
+            icon: path.join(__dirname, 'assets/icons/png/64x64.png')
+
         win = new BrowserWindow options
         win.recreate = create_report_window
         win.loadURL url.format
@@ -74,7 +78,7 @@ if isElectron
             frame: if is_linux then true else false
             transparent: if is_linux then false else true
             show: true
-            icon: path.join __dirname, 'static_files/images/icon.png'
+            icon: path.join(__dirname, 'assets/icons/png/64x64.png')
             title: 'MyouLog'
             skipTaskbar: true
             resizable: false

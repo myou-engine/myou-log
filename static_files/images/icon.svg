@@ -1,45 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="64"
-   height="64"
-   viewBox="0 0 63.999999 63.999999"
-   id="svg4138"
    version="1.1"
-   inkscape:version="0.91 r13725"
-   sodipodi:docname="ico.svg"
-   inkscape:export-filename="C:\Users\moond\pix\myou\editor\static_files\images\ico.png"
-   inkscape:export-xdpi="180"
-   inkscape:export-ydpi="180">
+   id="svg4138"
+   viewBox="0 0 63.999999 63.999999"
+   height="64"
+   width="64">
   <defs
      id="defs4140" />
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="5.6"
-     inkscape:cx="15.70756"
-     inkscape:cy="9.4776595"
-     inkscape:document-units="px"
-     inkscape:current-layer="layer1"
-     showgrid="false"
-     units="px"
-     inkscape:window-width="1920"
-     inkscape:window-height="1027"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1" />
   <metadata
      id="metadata4143">
     <rdf:RDF>
@@ -53,27 +25,19 @@
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Capa 1"
-     inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(0,-988.3622)">
+     transform="translate(0,-988.3622)"
+     id="layer1">
     <path
-       inkscape:connector-curvature="0"
-       style="color:#000000;display:inline;overflow:visible;visibility:visible;opacity:1;fill:#696969;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate"
-       d="m 35.5165,998.51609 0,22.44711 -7.482371,0 0,7.4825 -7.482372,0 0,14.9647 14.964743,0 0,-7.4824 7.482371,0 0,7.4824 7.482371,0 0,-22.4472 7.482371,0 0,-22.44711 -7.482371,0 0,7.48251 -7.482371,0 0,-7.48251 z m -14.964743,29.92961 0,-14.9648 -7.482372,0 0,-7.4823 -7.4823701,0 0,14.9646 7.4823701,0 0,7.4825 z"
        id="path3981"
-       sodipodi:nodetypes="cccccccccccccccccccccccccccc" />
+       d="m 32.071219,996.28469 0,24.05471 -8.017856,0 0,8.0183 -8.017859,0 0,16.0363 16.035715,0 0,-8.0183 8.017858,0 0,8.0183 8.017857,0 0,-24.0546 8.017856,0 0,-24.05471 -8.017856,0 0,8.01841 -8.017857,0 0,-8.01841 z m -16.035715,32.07301 0,-16.0365 -8.0178574,0 0,-8.0181 -8.01785672026,0 0,16.0363 8.01785672026,0 0,8.0183 z"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;opacity:1;fill:#696969;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;marker:none;enable-background:accumulate" />
     <path
-       inkscape:connector-curvature="0"
-       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#b1c151;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate"
-       d="m 35.5165,1005.9986 7.482371,0 0,7.4823 -7.482371,0 z"
        id="path3983"
-       sodipodi:nodetypes="ccccc" />
+       d="m 32.071219,1004.3031 8.017858,0 0,8.0181 -8.017858,0 z"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#b1c151;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate" />
     <path
-       inkscape:connector-curvature="0"
-       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#eec151;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate"
-       d="m 50.481242,1005.9986 7.482371,0 0,7.4823 -7.482371,0 z"
        id="path3985"
-       sodipodi:nodetypes="ccccc" />
+       d="m 48.106934,1004.3031 8.017856,0 0,8.0181 -8.017856,0 z"
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#eec151;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;enable-background:accumulate" />
   </g>
 </svg>
