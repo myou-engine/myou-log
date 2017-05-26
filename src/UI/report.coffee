@@ -1,7 +1,7 @@
-{react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common_ui.coffee'
+{react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common.coffee'
 {Component, React, ReactDOM} = react_utils
 {div, form, input, b} = React.DOM
-log = require './log'
+log = require '../log'
 
 last_date = null
 
@@ -120,7 +120,7 @@ main_component = Component
                             mixins.rowFlex
                             theme.fontStyles.p
                         ]
-                        "from "
+                        "from"
                         input
                             style:[
                                 padding: 4

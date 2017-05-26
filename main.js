@@ -1,2 +1,2 @@
 require('coffee-script/register');
-require('./electron.coffee');
+require('./src/electron.coffee');

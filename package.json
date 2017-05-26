@@ -31,7 +31,14 @@
   "build": {
     "appId": "cat.myou.log",
     "mac": {
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "icon": "assets/icons/mac/icon.icns"
+    },
+    "linux":{
+        "icon": "assets/icons/mac/icon.icns"
+    },
+    "win":{
+        "icon": "assets/icons/win/icon.ico"
     }
   }
 }

@@ -1,6 +1,6 @@
-log = require './log'
+log = require '../log'
 
-{react_utils, theme, mixins, components, sounds, format_time} = require './common_ui.coffee'
+{react_utils, theme, mixins, components, sounds, format_time} = require './common.coffee'
 # MyoUI includes some React utils.
 {Component, React, ReactDOM} = react_utils
 {div} = React.DOM
@@ -135,7 +135,8 @@ trayMenuTemplate = [
 
 trayMenu = Menu.buildFromTemplate trayMenuTemplate
 
-tray = new Tray __dirname + '/../static_files/images/icon.png'
+#TODO: make it multiplatform
+tray = new Tray __dirname + '/../../assets/icons/win/icon.ico'
 
 tray.setContextMenu trayMenu
 tray.on 'click', ->

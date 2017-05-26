@@ -1,4 +1,4 @@
-{react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common_ui.coffee'
+{react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common.coffee'
 {Component, React, ReactDOM} = react_utils
 {div, b} = React.DOM
 

@@ -4,10 +4,13 @@
 # adding default css code to the document
 require 'myoui/default_fonts'
 require 'myoui/default_animations'
-window.moment = moment = require 'moment'
+
+path = require 'path'
+
+moment = require 'moment'
 markdown = react_utils.React.createFactory require('react-remarkable')
 theme = new Theme
-window.theme = theme
+
 # adding webkitAppRegion to default theme
 theme.UIElement.push {WebkitAppRegion: 'no-drag', cursor: 'pointer'}
 theme.UIElementContainer = (disabled, useHighlight, forceHighlight)-> [
@@ -36,8 +39,6 @@ theme.colors.green = 'rgb(194, 228, 157)'
 theme.colors.light_green = 'rgb(200, 244, 187)'
 theme.colors.light_orange = 'rgb(255, 181, 132)'
 theme.colors.orange = 'rgb(255, 171, 112)'
-
-
 
 myoui = new MyoUI theme
 
@@ -89,9 +90,8 @@ components = {
         slider.update()
 }
 
-
 sounds = {
-    notification: new Audio('sounds/notification.mp3')
+    notification: new Audio path.join __dirname, '../../assets/sounds/notification.mp3'
 }
 
 format_time = (time=Date.now())->

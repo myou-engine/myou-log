@@ -10,7 +10,7 @@ isElectron = /^electron|myou-log/.test  app_proccess
 
 if isElectron
     {settings, save_settings, load_settings,
-    apply_default_settings, add_post_save_callback} = require './src/settings'
+    apply_default_settings, add_post_save_callback} = require './settings'
     load_settings()
 
     {app, BrowserWindow, globalShortcut} = require 'electron'
@@ -32,12 +32,12 @@ if isElectron
             height: 600
             minWidth: 600
             minHeight: 200
-            icon: path.join(__dirname, 'assets/icons/png/64x64.png')
+            icon: path.join __dirname, '../assets/icons/png/64x64.png'
 
         win = new BrowserWindow options
         win.recreate = create_settings_window
         win.loadURL url.format
-            pathname: path.join __dirname, '/static_files/settings_window.html'
+            pathname: path.join __dirname, 'UI/html/settings.html'
             protocol: 'file:'
             slashes: true
         win.setMenuBarVisibility false
@@ -55,12 +55,12 @@ if isElectron
             height: 600
             minWidth: 600
             minHeight: 200
-            icon: path.join(__dirname, 'assets/icons/png/64x64.png')
+            icon: path.join __dirname, '../assets/icons/png/64x64.png'
 
         win = new BrowserWindow options
         win.recreate = create_report_window
         win.loadURL url.format
-            pathname: path.join __dirname, '/static_files/report_window.html'
+            pathname: path.join __dirname, 'UI/html/report.html'
             protocol: 'file:'
             slashes: true
         win.setMenuBarVisibility false
@@ -78,7 +78,7 @@ if isElectron
             frame: if is_linux then true else false
             transparent: if is_linux then false else true
             show: true
-            icon: path.join(__dirname, 'assets/icons/png/64x64.png')
+            icon: path.join __dirname, '../assets/icons/png/64x64.png'
             title: 'MyouLog'
             skipTaskbar: true
             resizable: false
@@ -109,7 +109,7 @@ if isElectron
 
         # Load the html of the app.
         win.loadURL url.format
-            pathname: path.join __dirname, '/static_files/main_window.html'
+            pathname: path.join __dirname, 'UI/html/main.html'
             protocol: 'file:'
             slashes: true
         return win
