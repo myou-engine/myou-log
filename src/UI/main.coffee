@@ -8,6 +8,8 @@ log = require '../log'
 # to use arrays and objects combined in the same style property.
 
 is_linux = process.platform == 'linux'
+is_win = process.platform == 'win32'
+is_mac = process.platform == 'darwin'
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
@@ -135,8 +137,15 @@ trayMenuTemplate = [
 
 trayMenu = Menu.buildFromTemplate trayMenuTemplate
 
-#TODO: make it multiplatform
-tray = new Tray __dirname + '/../../assets/icons/win/icon.ico'
+if is_win
+    icon = '/../../assets/icons/win/icon.ico'
+if is_mac
+    icon = '/../../assets/icons/mac/icon.icns'
+else
+    icon = '/../../assets/icons/png/24x24.png'
+
+
+tray = new Tray __dirname + icon
 
 tray.setContextMenu trayMenu
 tray.on 'click', ->
