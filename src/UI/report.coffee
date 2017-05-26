@@ -10,6 +10,14 @@ entries_by_day = {}
 days_state = []
 days = []
 
+get_day = (date)-> Math.floor(date/1000/60/60/24)*1000*60*60*24
+
+today = 0
+update_today = ->
+    today = get_day Date.now()
+
+update_today()
+
 addEventListener 'keydown', (event)->
     if event.keyCode == 123
         ewin.webContents.openDevTools({mode:'detach'})
@@ -33,7 +41,7 @@ load_log = ->
         entries.pop()
 
     for e in final_entries
-        day = Math.floor(e.date/1000/60/60/24)*1000*60*60*24
+        day = get_day e.date
         e.details = 0
         if day not in days
             days.push day
@@ -192,7 +200,7 @@ main_component = Component
                 ]
                 for day,i in days when @state.date_to + 24*60*60*1000 >= day >= @state.date_from
                     date = moment(day)
-                    fdate = date.format("dddd [\n\n__]MMM Do[__ -] YYYY")
+                    fdate = date.format("dddd [#{if day == today then " (Today)" else ""}\n\n__]MMM Do[__ -] YYYY")
 
                     day_entries = entries_by_day[day]
                     div
@@ -256,7 +264,6 @@ main_component = Component
                                 padding: 10
                                 margin: '10px 20px 40px 20px'
                                 borderRadius: theme.radius.r2
-                                mixins.transition '1s', 'height'
 
                             ]
                             if days_state[i].details
@@ -352,4 +359,5 @@ main_component = Component
 # Rendering main_component with ReactDOM in our HTML element `app`
 app = document.getElementById 'app'
 render_all= ->
+    update_today()
     ReactDOM.render main_component(), app
