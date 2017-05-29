@@ -37,7 +37,7 @@ if isElectron
         options =
             title: 'MyouLog - Settings'
             width: 600
-            height: 600
+            height: 650
             minWidth: 600
             minHeight: 200
             icon: path.join __dirname, '../assets/icons/png/64x64.png'
