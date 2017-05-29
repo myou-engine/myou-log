@@ -205,18 +205,24 @@ show_window = (alarm)->
     set_inactivity_check?()
 
 last_check_inactivity_interval = null
+last_reminder_interval = null
 set_inactivity_check = ->
-    reminder_time = null
     clearInterval last_check_inactivity_interval
+    clearInterval last_reminder_interval
     check_inactivity = ->
-        if hidden_window
-            return
-        set_dialog 0
-        log.new_entry {active:false, date:show_window_time}
-        ui_alarm()
+        if not hidden_window
+            set_dialog 0
+            log.new_entry {active:false, date:show_window_time}
+            ui_alarm()
+    check_reminder = ->
+        if log.is_active and not hidden_window
+            console.log hidden_window, log.is_active
+            ui_alarm()
 
     last_check_inactivity_interval = setInterval check_inactivity,
         settings.inactivity_check_interval
+    last_reminder_interval = setInterval check_reminder, settings.reminder_time
+
 
 addEventListener 'click', set_inactivity_check
 addEventListener 'keydown', -> if current_dialog == 1 then set_inactivity_check()
@@ -245,7 +251,6 @@ set_auto_hide_time = (time=10, callback=->)->
 # This function will be filled on componentWillMount
 set_dialog = ->
 ui_alarm = ->
-reminder_time = null
 # This is to know the value of the current
 # active dialog out of the component render function
 current_dialog = 0
@@ -309,6 +314,8 @@ main_component = Component
         dialog: 0
         auto_highlight: true
     render: ->
+        if hidden_window
+            return null
         log_reward = log.get_reward()
         selected_reward = Math.min(selected_reward, log_reward)
         auto_highlight = @state.auto_highlight and (auto_hide_time != Infinity)
@@ -342,17 +349,6 @@ main_component = Component
                     You've been working for\n#{format_time(time)}\n\n
                     Are you still working?"
                 if time_since_show_window >= settings.reminder_time
-                    # if reminder_time?
-                    #     if date_now - reminder_time >= settings.reminder_time
-                    #         reminder_time = -(date_now - reminder_time)%settings.reminder_time
-                    #         console.log reminder_time
-                    #     if reminder_time <= 0
-                    #         console.log 'ALRMA'
-                    #         requestAnimationFrame -> ui_alarm()
-                    #         reminder_time = date_now
-                    # else
-                    #     reminder_time = 0
-
                     are_you_working_message = "
                         It looks like you've \nbeen distracted for\n#{format_time(time_since_show_window)}\n\n
                         Were you working?

@@ -96,9 +96,8 @@ main_component = Component
                             div {style:box_style},
                                 components.slider
                                     label: 'Inactivity check'
-                                    min: 1/60
-                                    softMin: 1
-                                    max: 120 # min
+                                    min: 1
+                                    softMax: 60
                                     step: 1
                                     allowManualEdit: true
                                     formatValue: (v)->
@@ -108,11 +107,23 @@ main_component = Component
                                     onSlideEnd: (v)->
                                         settings.inactivity_check_interval = v*60000
                                         save_settings(isDebug)
-
+                                components.slider
+                                    label: 'Inactivity reminder'
+                                    min: 1
+                                    softMax: 60
+                                    step: 1
+                                    allowManualEdit: true
+                                    formatValue: (v)->
+                                        v + ' min'
+                                    read: ->
+                                        settings.reminder_time/60000
+                                    onSlideEnd: (v)->
+                                        settings.reminder_time = v*60000
+                                        save_settings(isDebug)
                                 components.slider
                                     label: 'Show window'
                                     min: 1
-                                    max: 120 # min
+                                    softMax: 60
                                     step: 1
                                     allowManualEdit: true
                                     formatValue: (v)->
