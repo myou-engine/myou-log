@@ -1,7 +1,7 @@
 {
   "name": "myou-log",
   "version": "0.1.2",
-  "description": "The work logger for the lazy.",
+  "description": "The work logger for the absent-minded.",
   "author": "Julio Manuel López <julio@pixelements.net> (http://pixelements.net)",
   "license": "MIT",
   "main": "main.js",
