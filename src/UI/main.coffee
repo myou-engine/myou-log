@@ -162,8 +162,10 @@ if win_position
     win_position = JSON.parse win_position
     ewin.setPosition win_position[0], win_position[1]
 
+hidden_window = false
 show_window_timeout = null
 hide_window = (break_time=0)->
+    hidden_window = true
     break_time = break_time or settings.auto_show_window_timeout
     ewin.hide()
     console.log "Set timeout to show window in #{format_time break_time}."
@@ -173,6 +175,7 @@ hide_window = (break_time=0)->
 
 show_window_time = 0
 show_window = (alarm)->
+    hidden_window = false
     show_window_time = Date.now()
     ewin.setAlwaysOnTop true
     clearTimeout show_window_timeout
@@ -193,7 +196,8 @@ last_check_inactivity_interval = null
 set_inactivity_check = ->
     clearInterval last_check_inactivity_interval
     check_inactivity = ->
-        time = (Date.now() - log.last_activity_change.date)
+        if hidden_window
+            return
         set_dialog 0
         log.new_entry {active:false, date:show_window_time}
         ui_alarm()
