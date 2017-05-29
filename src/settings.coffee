@@ -51,6 +51,8 @@ new class MyouLogSettings
 
             data = JSON.stringify @settings, null, 4
             try
+                if  not fs.existsSync app_data
+                    fs.mkdirSync app_data
                 fs.writeFileSync app_data + 'settings.json', data
                 console.log 'Saving settings:\n' + data
                 for cb in post_save_callbacks
