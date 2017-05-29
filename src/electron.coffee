@@ -9,11 +9,19 @@ isDebug = /^electron/.test app_proccess
 isElectron = /^electron|myou-log/.test  app_proccess
 
 if isElectron
+    {app, BrowserWindow, globalShortcut} = require 'electron'
+
+    # Disallow multiple instances.
+    shouldQuit = app.makeSingleInstance (commandLine, workingDirectory)->
+      console.warn "Multiple instances not allowed."
+
+    if shouldQuit
+      app.quit()
+
     {settings, save_settings, load_settings,
     apply_default_settings, add_post_save_callback} = require './settings'
     load_settings()
 
-    {app, BrowserWindow, globalShortcut} = require 'electron'
     if not app? # old electron api
         app = require('app') # Module to control application life.
         BrowserWindow = require('browser-window')  # Module to create native browser window.
