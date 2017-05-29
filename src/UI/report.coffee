@@ -3,6 +3,20 @@
 {div, form, input, b} = React.DOM
 log = require '../log'
 
+electron = require 'electron'
+ewin = electron.remote.getCurrentWindow()
+app_element = document.getElementById 'app'
+
+# Adjusting window size to include window border
+inset_rect = app_element.getClientRects()[0]
+size = ewin.getSize()
+window_border_width = size[0] - inset_rect.width
+new_width = size[0] + window_border_width
+min_height = ewin.getMinimumSize()[1]
+ewin.setSize new_width, size[1]
+ewin.setMinimumSize new_width, min_height
+
+
 last_date = null
 
 final_entries = []
@@ -357,7 +371,6 @@ main_component = Component
             #     label: 'Print report'
 
 # Rendering main_component with ReactDOM in our HTML element `app`
-app = document.getElementById 'app'
 render_all= ->
     update_today()
-    ReactDOM.render main_component(), app
+    ReactDOM.render main_component(), app_element

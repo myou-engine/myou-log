@@ -17,6 +17,19 @@ window.$window = ewin
 ewin.setAlwaysOnTop true
 ewin.setVisibleOnAllWorkspaces true
 
+app_element = document.getElementById 'app'
+
+# Adjusting window size to include window border
+inset_rect = app_element.getClientRects()[0]
+size = ewin.getSize()
+window_border_width = size[0] - inset_rect.width
+new_width = size[0] + window_border_width
+min_height = ewin.getMinimumSize()[1]
+ewin.setSize new_width, size[1]
+ewin.setMinimumSize new_width, min_height
+console.log new_width, min_height
+
+
 ewin.on 'close', ()->
     report_window?.close()
     settings_window?.close()
@@ -513,8 +526,6 @@ main_component = Component
 
 
 # Rendering main_component with ReactDOM in our HTML element `app`
-app_element = document.getElementById 'app'
-
 render_all= ->
     ReactDOM.render main_component(), app_element
 
