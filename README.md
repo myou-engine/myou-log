@@ -1,11 +1,12 @@
 # MyouLog
 
-Do you forget to start/stop logger when you are focused (or distracted)? 
+Do you forget to start or stop your work logger when you get focused or distracted? Do you have a difficult time remembering how much time did you spend since then? Do you forget to set a timer to start or limit your breaks?
+
 If you ansered yes, MyouLog, _the work logger for the absent-minded_, is for you.
 
 ## Questions window
-__MyouLog will ask you__ every 5 minutes (configurable) if you are working and if you do,  
-what are you working on. But don't worry, the questions are __designed to avoid distractactions__ and answer them will take a less than a second. 
+__MyouLog will ask you__ every 5 minutes (configurable) if you are working and what are you working on. But don't worry, the questions are __designed to avoid distractactions__ and answering will take less than a second.
+In most cases you just have to click or press a key shortcut, once, with more than enough leeway to answer.
 
 ![myou-log question window](http://pixelements.net/myou/myou-log/screenshots/myou_log_05.png)
 ![myou-log question window](http://pixelements.net/myou/myou-log/screenshots/myou_log_02.png)
@@ -13,7 +14,7 @@ what are you working on. But don't worry, the questions are __designed to avoid 
 ![myou-log question window](http://pixelements.net/myou/myou-log/screenshots/myou_log_01.png)
 
 ## Report window
-You answers will be compiled into a log which you can see on detail from the __report tool__ included in MyouLog.
+Your activity will be compiled into a log which you can see on detail from the __report tool__ included in MyouLog.
 
 ![myou-log question window](http://pixelements.net/myou/myou-log/screenshots/myou_log_04.png)
 
