@@ -201,12 +201,12 @@ show_window = (alarm)->
         ui_alarm?()
     else
         render_all?()
+    reminder_time = null
     set_inactivity_check?()
-
-
 
 last_check_inactivity_interval = null
 set_inactivity_check = ->
+    reminder_time = null
     clearInterval last_check_inactivity_interval
     check_inactivity = ->
         if hidden_window
@@ -245,6 +245,7 @@ set_auto_hide_time = (time=10, callback=->)->
 # This function will be filled on componentWillMount
 set_dialog = ->
 ui_alarm = ->
+reminder_time = null
 # This is to know the value of the current
 # active dialog out of the component render function
 current_dialog = 0
@@ -340,12 +341,25 @@ main_component = Component
                 are_you_working_message = "
                     You've been working for\n#{format_time(time)}\n\n
                     Are you still working?"
-                if time_since_show_window > 60000
+                if time_since_show_window >= settings.reminder_time
+                    # if reminder_time?
+                    #     if date_now - reminder_time >= settings.reminder_time
+                    #         reminder_time = -(date_now - reminder_time)%settings.reminder_time
+                    #         console.log reminder_time
+                    #     if reminder_time <= 0
+                    #         console.log 'ALRMA'
+                    #         requestAnimationFrame -> ui_alarm()
+                    #         reminder_time = date_now
+                    # else
+                    #     reminder_time = 0
+
                     are_you_working_message = "
                         It looks like you've \nbeen distracted for\n#{format_time(time_since_show_window)}\n\n
                         Were you working?
                     "
+
             else
+                reminder_time = null
                 are_you_working_message = "
                     You've been distracted for\n#{format_time(time)}\n\n
                     Did you start working?"

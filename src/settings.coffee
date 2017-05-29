@@ -1,18 +1,23 @@
 fs = require 'fs'
 {app} = require 'electron'
 app_data = app.getPath('appData').replace('\\', '/') + '/myou-log/'
+is_linux = process.platform == 'linux'
+is_win = process.platform == 'win32'
+is_mac = process.platform == 'darwin'
 
 new class MyouLogSettings
     constructor: ->
+        ctrl_key = if is_mac then "Command" else "Control"
         @settings = settings =
             inactivity_check_interval: 300000
             auto_show_window_timeout: 300000
+            reminder_time: 60000
             global_shortcuts:
-                yes: 'CommandOrControl+Alt+Y'
-                no: 'CommandOrControl+Alt+N'
-                main_window: 'CommandOrControl+Alt+Q'
-                report_window: 'CommandOrControl+Alt+R'
-                settings_window: 'CommandOrControl+Alt+S'
+                yes: "#{ctrl_key}+Alt+Y"
+                no: "#{ctrl_key}+Alt+N"
+                main_window: "#{ctrl_key}+Alt+Q"
+                report_window: "#{ctrl_key}+Alt+R"
+                settings_window: "#{ctrl_key}+Alt+S"
             open_on_startup: true
             log_file: app_data + 'log.json'
             reward_ratio: 1/4
