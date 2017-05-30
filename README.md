@@ -1,6 +1,6 @@
 # MyouLog
 
-Do you forget to start or stop your work logger when you get focused or distracted? Do you have a difficult time remembering how much time you spent since then? Do you forget to set a timer to start or limit your breaks?
+Do you forget to start or stop your work logger when you get focused or distracted? Do you have difficulties to remember how much time did you spend since then? Do you forget to set a timer to start or limit your breaks?
 
 If you ansered yes, MyouLog, _the work logger for the absent-minded_, is for you.
 
