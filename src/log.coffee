@@ -22,7 +22,8 @@ class Log
             fs.rename 'log.json', log_file
             console.log 'Moving log.json to ' + log_file
 
-        if fs.existsSync(log_file)
+        file_exists = fs.existsSync(log_file)
+        if file_exists
             console.log 'log file found here: ' + log_file
         else
             console.log 'file not found: ' + log_file
@@ -35,15 +36,17 @@ class Log
             # loading without save because, the log will not have any changes.
             @add_multiple_entries old_log, false
         catch err
-            console.log err
-            # Reading from localStorage if log file doesn't exist.
-            console.warn 'Reading deprecated log from localStorage. \nIt will be cleared after this operation.'
-            old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
-            # moved to myoulog_backup to save it in case of loose your log
-            localStorage.myoulog_backup = localStorage.myoulog
-            localStorage.removeItem 'myoulog'
-            # It will also save the log file.
-            @add_multiple_entries old_log
+            if not file_exists
+                console.log err
+                # Reading from localStorage if log file doesn't exist.
+                console.warn 'Reading deprecated log from localStorage. \nIt will be cleared after this operation.'
+                old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
+                # moved to myoulog_backup to save it in case of loose your log
+                localStorage.myoulog_backup = localStorage.myoulog
+                localStorage.removeItem 'myoulog'
+                # It will also save the log file.
+                @add_multiple_entries old_log, false
+                @save log_file
 
     save: (log_file=settings.log_file)->
         str_entries = JSON.stringify(@entries, null, if ewin.isDebug then 4 else null)
