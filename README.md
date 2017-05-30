@@ -5,7 +5,7 @@ Do you forget to start or stop your work logger when you get focused or distract
 If you ansered yes, MyouLog, _the work logger for the absent-minded_, is for you.
 
 ## Questions window
-__MyouLog will ask you__ every 5 minutes (configurable) if you are working and what are you working on. But don't worry, the questions are __designed to avoid distractactions__ and answering will usually take less than a second, with just a click or a keypress. After not answering for 5 minutes (configurable), it will assume you were distracted during that time.
+__MyouLog will ask you__ every 5 minutes (configurable) if you are working and what are you working on. But don't worry, the questions and the UI are __designed to avoid distractactions__ and answering will usually take less than a second, with just a click or a keypress. After not answering for 5 minutes (configurable), it will assume you were distracted during that time.
 
 ![myou-log question window](http://pixelements.net/myou/myou-log/screenshots/myou_log_05.png)
 ![myou-log question window](http://pixelements.net/myou/myou-log/screenshots/myou_log_02.png)
