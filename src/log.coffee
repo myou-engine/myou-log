@@ -99,10 +99,10 @@ class Log
 
     get_duration: (index, entries=@entries)->
         duration = 0
-        first = log.entries[index]
+        first = entries[index]
         if not first then return 0
         for i in [index...entries.length]
-            e = log.entries[i]
+            e = entries[i]
             if not e.pause? and ((e.task != first.task) or (e.active != first.active)) then break
             duration += @_get_segment_duration i, false, entries
 
@@ -113,7 +113,7 @@ class Log
         first = entries[index]
         if not first then return 0
         for i in [index...entries.length]
-            e = log.entries[i]
+            e = entries[i]
             if not e.pause? and e.active != first.active then break
             duration += @_get_segment_duration i, false, entries
 
