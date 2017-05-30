@@ -1,7 +1,7 @@
 {react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common.coffee'
 {Component, React, ReactDOM} = react_utils
 {div, form, input, b} = React.DOM
-{Log, log} = require '../log'
+{Log} = require '../log'
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
@@ -320,7 +320,7 @@ render_all= ->
     update_today()
     ReactDOM.render main_component(), app_element
 
-load_log = ->
+load_log = (log)->
     final_entries = []
     entries_by_day = {}
     days_state = []
@@ -363,11 +363,19 @@ load_log = ->
 
     render_all()
 
-load_log()
+own_log = require('../log').log
+
+load_log own_log
+
+window.load_other_log = (path)->
+    l = new Log
+    l.load path
+    load_log l
+    return l
 
 addEventListener 'keydown', (event)->
     if event.keyCode == 123
         ewin.webContents.openDevTools({mode:'detach'})
     if (event.ctrlKey and event.keyCode == 82) or event.keyCode == 116 # ctrl + r or F5
         event.preventDefault()
-        load_log()
+        load_log(own_log)
