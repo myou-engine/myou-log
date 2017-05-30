@@ -104,7 +104,7 @@ class Log
         for i in [index...entries.length]
             e = entries[i]
             if not e.pause? and ((e.task != first.task) or (e.active != first.active)) then break
-            duration += @_get_segment_duration i, false, entries
+            duration += @_get_segment_duration i, true, entries
 
         return duration
 
@@ -115,7 +115,7 @@ class Log
         for i in [index...entries.length]
             e = entries[i]
             if not e.pause? and e.active != first.active then break
-            duration += @_get_segment_duration i, false, entries
+            duration += @_get_segment_duration i, true, entries
 
         return duration
 
@@ -129,12 +129,13 @@ class Log
         # Filling undefined active task and combining entries with adjacent with same task
         output = []
         last_date = 0
+        last_was_active = false
         for {active, task, date, pause}, i in entries
-            if entries[i+1]? and date >= entries[i+1].date
+            if entries[i+1]? and (date >= entries[i+1].date) and not pause?
                 continue
 
             if pause?
-                output.push {pause, date}
+                output.push {active, pause, date}
                 continue
 
             # getting task
