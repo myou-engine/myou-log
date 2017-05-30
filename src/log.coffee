@@ -1,7 +1,8 @@
 fs = require 'fs'
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
-{log_file, reward_ratio, reward_pack, inactivity_check_interval} = ewin.settings
+settings = ewin.settings
+
 class Log
     constructor: (entries=[])->
         @entries = []
@@ -15,7 +16,36 @@ class Log
         @entries = []
         @save()
 
-    save: ->
+    # This promise is resolved only after read the log file.
+    load: (log_file=settings.log_file)->
+        if log_file != 'log.json' and not fs.existsSync(log_file) and fs.existsSync 'log.json'
+            fs.rename 'log.json', log_file
+            console.log 'Moving log.json to ' + log_file
+
+        if fs.existsSync(log_file)
+            console.log 'log file found here: ' + log_file
+        else
+            console.log 'file not found: ' + log_file
+
+        old_log = []
+        try
+            data = fs.readFileSync(log_file, 'utf8').toString()
+            console.log 'Reading log from file.'
+            old_log = JSON.parse data or '[]'
+            # loading without save because, the log will not have any changes.
+            @add_multiple_entries old_log, false
+        catch err
+            console.log err
+            # Reading from localStorage if log file doesn't exist.
+            console.warn 'Reading deprecated log from localStorage. \nIt will be cleared after this operation.'
+            old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
+            # moved to myoulog_backup to save it in case of loose your log
+            localStorage.myoulog_backup = localStorage.myoulog
+            localStorage.removeItem 'myoulog'
+            # It will also save the log file.
+            @add_multiple_entries old_log
+
+    save: (log_file=settings.log_file)->
         str_entries = JSON.stringify(@entries, null, if ewin.isDebug then 4 else null)
         #saving backup
         localStorage.myoulog_backup = str_entries
@@ -46,11 +76,11 @@ class Log
                 if add
                     reward += duration
                 else
-                    reward -= 1/reward_ratio * duration
+                    reward -= 1/settings.reward_ratio * duration
                     reward = Math.max 0, reward
 
 
-        return Math.floor((reward * reward_ratio) / reward_pack)*reward_pack
+        return Math.floor((reward * settings.reward_ratio) / settings.reward_pack)*settings.reward_pack
 
     _get_segment_duration: (index, exclude_pauses=true, entries=@entries)->
         entry = entries[index]
@@ -167,44 +197,14 @@ class Log
             return
 
 log = new Log
-
-# This promise is resolved only after read the log file.
-log.get_load_promise = ->
-    new Promise (resolve, reject) ->
-        if fs.existsSync 'log'
-            fs.rename 'log', log_file
-            console.log 'Old log file found. moved to ' + log_file
-
-        if log_file != 'log.json' and not fs.existsSync(log_file) and fs.existsSync 'log.json'
-            fs.rename 'log.json', log_file
-            console.log 'Moving log.json to ' + log_file
-
-        fs.readFile log_file, 'utf8', (err, data)->
-            old_log = []
-            if err
-                console.log err
-                # Reading from localStorage if log file doesn't exist.
-                console.warn 'Reading deprecated log from localStorage. \nIt will be cleared after this operation.'
-                old_log = (localStorage.myoulog? and JSON.parse(localStorage.myoulog)) or []
-                # moved to myoulog_backup to save it in case of loose your log
-                localStorage.myoulog_backup = localStorage.myoulog
-                localStorage.removeItem 'myoulog'
-                # It will also save the log file.
-                log.add_multiple_entries old_log
-            else
-                console.log 'Reading log from file.'
-                old_log = JSON.parse data or '[]'
-                # loading without save because, the log will not have any changes.
-                log.add_multiple_entries old_log, false
-
-            resolve()
+log.load()
 
 interruption_check = ->
     # using saved date from localStorage.myoulog_last_date
     # to create a new inactivity entry
     if localStorage.myoulog_last_date?
         last_date = parseInt localStorage.myoulog_last_date
-        if (Date.now() - last_date) > inactivity_check_interval
+        if (Date.now() - last_date) > settings.inactivity_check_interval
             log.new_entry {active:false, date:last_date, auto: true}
 
 log.enable_last_date_checker = ->
@@ -216,7 +216,4 @@ log.enable_last_date_checker = ->
     setInterval save_last_date, 1000
 
 
-#debug log
-window.$log = log
-
-module.exports = log
+module.exports = {log, Log}

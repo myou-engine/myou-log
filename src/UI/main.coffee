@@ -1,4 +1,4 @@
-log = require '../log'
+{log} = require '../log'
 
 {react_utils, theme, mixins, components, sounds, format_time} = require './common.coffee'
 # MyoUI includes some React utils.
@@ -539,10 +539,9 @@ main_component = Component
 render_all= ->
     ReactDOM.render main_component(), app_element
 
-log.get_load_promise().then ->
-    log.enable_last_date_checker()
-    selected_reward = log.get_reward()
-    show_window()
+log.enable_last_date_checker()
+selected_reward = log.get_reward()
+show_window()
 
 
 setInterval render_all, 1000

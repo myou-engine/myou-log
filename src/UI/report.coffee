@@ -1,7 +1,7 @@
 {react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common.coffee'
 {Component, React, ReactDOM} = react_utils
 {div, form, input, b} = React.DOM
-log = require '../log'
+{Log, log} = require '../log'
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
@@ -15,7 +15,6 @@ new_width = size[0] + window_border_width
 min_height = ewin.getMinimumSize()[1]
 ewin.setSize new_width, size[1]
 ewin.setMinimumSize new_width, min_height
-
 
 last_date = null
 
@@ -31,60 +30,6 @@ update_today = ->
     today = get_day Date.now()
 
 update_today()
-
-addEventListener 'keydown', (event)->
-    if event.keyCode == 123
-        ewin.webContents.openDevTools({mode:'detach'})
-    if (event.ctrlKey and event.keyCode == 82) or event.keyCode == 116 # ctrl + r or F5
-        event.preventDefault()
-        update_report()
-
-load_log = ->
-    final_entries = []
-    entries_by_day = {}
-    days_state = []
-    days = []
-
-    last_was_active = false
-    last_task = null
-    entries = log.get_clean_entries()
-    log.add_duration(entries)
-
-    # invert entries
-    final_entries = for i in [0...entries.length]
-        entries.pop()
-
-    for e in final_entries
-        day = get_day e.date
-        e.details = 0
-        if day not in days
-            days.push day
-            days_state.push
-                details:0
-                collapsed_entries:{}
-                activity_duration: 0
-                inactivity_duration: 0
-        if entries_by_day[day]?
-            entries_by_day[day].push e
-        else
-            entries_by_day[day] = [e]
-        day_state = days_state[days.length-1]
-        if e.active
-            task = e.task or 'Unknown'
-            day_state.activity_duration += e.duration
-            if day_state.collapsed_entries[task]?
-                day_state.collapsed_entries[task] += e.duration
-            else
-                day_state.collapsed_entries[task] = e.duration
-
-        else
-            day_state.inactivity_duration += e.duration
-    render_all()
-
-update_report = ->
-    log.get_load_promise().then load_log
-update_report()
-
 
 main_component = Component
     # componentDidUpdate: ->
@@ -374,3 +319,55 @@ main_component = Component
 render_all= ->
     update_today()
     ReactDOM.render main_component(), app_element
+
+load_log = ->
+    final_entries = []
+    entries_by_day = {}
+    days_state = []
+    days = []
+
+    last_was_active = false
+    last_task = null
+    entries = log.get_clean_entries()
+    log.add_duration(entries)
+
+    # invert entries
+    final_entries = for i in [0...entries.length]
+        entries.pop()
+
+    for e in final_entries
+        day = get_day e.date
+        e.details = 0
+        if day not in days
+            days.push day
+            days_state.push
+                details:0
+                collapsed_entries:{}
+                activity_duration: 0
+                inactivity_duration: 0
+        if entries_by_day[day]?
+            entries_by_day[day].push e
+        else
+            entries_by_day[day] = [e]
+        day_state = days_state[days.length-1]
+        if e.active
+            task = e.task or 'Unknown'
+            day_state.activity_duration += e.duration
+            if day_state.collapsed_entries[task]?
+                day_state.collapsed_entries[task] += e.duration
+            else
+                day_state.collapsed_entries[task] = e.duration
+
+        else
+            day_state.inactivity_duration += e.duration
+
+    render_all()
+
+load_log()
+
+addEventListener 'keydown', (event)->
+    if event.keyCode == 123
+        ewin.webContents.openDevTools({mode:'detach'})
+    if (event.ctrlKey and event.keyCode == 82) or event.keyCode == 116 # ctrl + r or F5
+        event.preventDefault()
+        load_log()
