@@ -11,7 +11,7 @@ app_element = document.getElementById 'app'
 inset_rect = app_element.getClientRects()[0]
 size = ewin.getSize()
 window_border_width = size[0] - inset_rect.width
-new_width = size[0] + window_border_width
+new_width = parseInt size[0] + window_border_width
 min_height = ewin.getMinimumSize()[1]
 ewin.setSize new_width, size[1]
 ewin.setMinimumSize new_width, min_height
