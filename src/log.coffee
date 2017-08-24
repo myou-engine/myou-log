@@ -168,17 +168,24 @@ class Log
                 e.duration = @get_duration i, entries
 
     new_entry: (entry, save=true)->
-        {active, task, date, pause} = entry
+        {active, task, date_str, pause} = entry
+        if not date_str?
+            {date} = entry
+            entry.date_str = new Date(date).toISOString()
+        else
+            date = (new Date date_str).getTime()
+        entry.date = date
+        entry.index = undefined
         if @last_entry and entry.date < @last_entry.date
             # Avoid negative entries
             # TODO: try to reproduce bug that causes this
             entry.date = date = Math.max date, @last_entry.date
+            entry.date_str = new Date(date).toISOString()
 
         if pause?
             console.log "%c#{if pause then 'PAUSE' else 'PLAY'}
                 #{new Date(date).toLocaleString()}",
                 "color:#{if pause then 'red' else 'green'}"
-            entry.index = @entries.length
             @is_paused = pause
             @entries.push entry
             if save
@@ -188,7 +195,6 @@ class Log
         activity_changed = active != @is_active
         task_changed = task != @last_entry?.task
         if activity_changed or task_changed
-            entry.index = @entries.length
             if activity_changed
                 @last_activity_change = entry
             if entry.active and task_changed
