@@ -5,8 +5,9 @@ platform = process.platform
 is_linux = platform == 'linux'
 app_proccess = process.execPath.split(path.sep).pop()
 
-isDebug = /^electron/.test app_proccess
-isElectron = /^electron|myou-log/.test  app_proccess
+console.log app_proccess
+isDebug = /^\.?electron/.test app_proccess
+isElectron = /^\.?electron|myou-log/.test  app_proccess
 
 if isElectron
     {app, BrowserWindow, globalShortcut} = require 'electron'
