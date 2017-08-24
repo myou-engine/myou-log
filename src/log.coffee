@@ -32,7 +32,12 @@ class Log
         try
             data = fs.readFileSync(log_file, 'utf8').toString()
             console.log 'Reading log from file.'
-            old_log = JSON.parse data or '[]'
+            try
+                old_log = JSON.parse data or '[]'
+            catch e
+                # Trying with lax syntax (trailing commas etc)
+                JSON2 = require 'JSON2'
+                old_log = JSON2.parse data
             # loading without save because, the log will not have any changes.
             @add_multiple_entries old_log, false
         catch err
