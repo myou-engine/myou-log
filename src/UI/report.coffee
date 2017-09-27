@@ -340,10 +340,7 @@ load_log = (log)->
     final_entries = []
     for e in entries
         real_day = get_day e.date
-        console.log "#{new Date(e.date)} #{new Date previous} #{new Date real_day} #{(e.date - Math.max(previous, real_day))/1000/3600}"
         if day==0 or e.date - Math.max(previous, real_day) > day_boundary_inactivity
-            if day != real_day
-                console.log day
             day = real_day
         previous = e.date
         e.day = day
