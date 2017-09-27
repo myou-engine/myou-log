@@ -37,8 +37,8 @@ if isElectron
     create_settings_window = ->
         options =
             title: 'MyouLog - Settings'
-            width: 600
-            height: 650
+            width: 710
+            height: 680
             minWidth: 600
             minHeight: 200
             icon: path.join __dirname, '../assets/icons/png/64x64.png'
