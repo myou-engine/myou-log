@@ -5,6 +5,7 @@
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
+settings = ewin.settings
 app_element = document.getElementById 'app'
 
 # Adjusting window size to include window border
@@ -23,7 +24,8 @@ entries_by_day = {}
 days_state = []
 days = []
 
-get_day = (date)-> Math.floor(date/1000/60/60/24)*1000*60*60*24
+tzoffset = (new Date()).getTimezoneOffset()*60*1000
+get_day = (date)-> Math.floor((date-tzoffset)/1000/60/60/24)*1000*60*60*24 + tzoffset
 
 today = 0
 update_today = ->
@@ -331,13 +333,26 @@ load_log = (log)->
     entries = log.get_clean_entries()
     log.add_duration(entries)
 
-    # invert entries
-    final_entries = for i in [0...entries.length]
-        entries.pop()
+    # add day boundaries and invert
+    {day_boundary_inactivity} = settings
+    day = 0
+    previous = 0
+    final_entries = []
+    for e in entries
+        real_day = get_day e.date
+        console.log "#{new Date(e.date)} #{new Date previous} #{new Date real_day} #{(e.date - Math.max(previous, real_day))/1000/3600}"
+        if day==0 or e.date - Math.max(previous, real_day) > day_boundary_inactivity
+            if day != real_day
+                console.log day
+            day = real_day
+        previous = e.date
+        e.day = day
+        final_entries.push e
+    final_entries.reverse()
 
-    for e in final_entries
-        day = get_day e.date
+    for e,i in final_entries
         e.details = 0
+        day = e.day
         if day not in days
             days.push day
             days_state.push

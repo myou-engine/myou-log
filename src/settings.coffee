@@ -22,6 +22,7 @@ new class MyouLogSettings
             log_file: app_data + 'log.json'
             reward_ratio: 1/4
             reward_pack: 300000 # 5 min
+            day_boundary_inactivity: 2*3600*1000
 
         combine_changes = (original, changes)->
             for k,v of changes

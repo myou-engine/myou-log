@@ -133,6 +133,20 @@ main_component = Component
                                         settings.auto_show_window_timeout = v*60000
                                         save_settings(isDebug)
 
+                                components.slider
+                                    label: 'Day boundary inactivity'
+                                    min: 0
+                                    softMax: 8*60
+                                    step: 1
+                                    allowManualEdit: true
+                                    formatValue: (v)->
+                                        v/=60
+                                        "#{v|0}:#{('0'+Math.round((v-(v|0))*60))[-2...]} hours"
+                                    read: -> settings.day_boundary_inactivity/(60*1000)
+                                    onSlideEnd: (v)->
+                                        settings.day_boundary_inactivity = v*60*1000
+                                        save_settings(isDebug)
+
                             components.message "Time to rest"
                             div {style:box_style},
                                 components.slider
