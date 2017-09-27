@@ -175,7 +175,8 @@ class Log
         else
             date = (new Date date_str).getTime()
         entry.date = date
-        entry.index = undefined
+        entry.hidden = ->
+        entry.hidden.index = @entries.length
         if @last_entry and entry.date < @last_entry.date
             # Avoid negative entries
             # TODO: try to reproduce bug that causes this

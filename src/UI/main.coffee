@@ -339,7 +339,7 @@ main_component = Component
         are_you_working_message = 'Are you working?'
 
         date_now = Date.now()
-        time = log.get_activity_duration log.last_activity_change.index
+        time = log.get_activity_duration log.last_activity_change.hidden.index
 
         time_since_show_window = date_now - show_window_time
 
