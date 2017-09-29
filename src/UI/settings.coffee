@@ -214,7 +214,12 @@ main_component = Component
                                     onSubmit: (v)->
                                         settings.global_shortcuts.settings_window = v
                                         save_settings(isDebug)
-
+                                components.text_input
+                                    label: "Test notification sound"
+                                    read: -> settings.global_shortcuts.sound_test
+                                    onSubmit: (v)->
+                                        settings.global_shortcuts.sound_test = v
+                                        save_settings(isDebug)
                     components.message 'System'
 
                     div

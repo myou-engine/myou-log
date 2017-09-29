@@ -76,6 +76,7 @@ show_report_window_shortcut = false
 show_settings_window_shortcut = false
 yes_shortcut = false
 no_shortcut = false
+sound_test = false
 
 apply_settings = ->
     clearTimeout show_window_timeout
@@ -102,12 +103,16 @@ apply_settings = ->
         globalShortcut.unregister yes_shortcut
     if no_shortcut
         globalShortcut.unregister no_shortcut
+    if sound_test_shortcut
+        globalShortcut.unregister sound_test_shortcut
 
     main_registered = globalShortcut.register settings.global_shortcuts.main_window, ->
         set_dialog 0
         show_window()
     report_registered = globalShortcut.register settings.global_shortcuts.report_window, show_report_window
     settings_registered = globalShortcut.register settings.global_shortcuts.settings_window, show_settings_window
+    sound_test_registered = globalShortcut.register settings.global_shortcuts.sound_test, ->
+        sounds.notification.play()
 
     if main_registered
         show_main_window_shortcut = settings.global_shortcuts.main_window
@@ -119,6 +124,18 @@ apply_settings = ->
     else
         show_report_window_shortcut = false
         console.warn 'Global shorcut in use: ' + settings.global_shortcuts.report_window
+
+    if settings_registered
+        show_settings_window_shortcut = settings.global_shortcuts.settings_window
+    else
+        show_settings_window_shortcut = false
+        console.warn 'Global shorcut in use: ' + settings.global_shortcuts.settings_window
+
+    if sound_test_registered
+        sound_test_shortcut = settings.global_shortcuts.main_window
+    else
+        sound_test_shortcut = false
+        console.warn 'Global shorcut in use: ' + settings.global_shortcuts.sound_test
 
 apply_settings()
 

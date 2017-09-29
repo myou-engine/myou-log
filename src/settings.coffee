@@ -18,6 +18,7 @@ new class MyouLogSettings
                 main_window: "#{ctrl_key}+Alt+Q"
                 report_window: "#{ctrl_key}+Alt+R"
                 settings_window: "#{ctrl_key}+Alt+S"
+                sound_test: "#{ctrl_key}+Alt+P"
             open_on_startup: true
             log_file: app_data + 'log.json'
             reward_ratio: 1/4
