@@ -12,83 +12,60 @@ markdown = react_utils.React.createFactory require('react-remarkable')
 theme = new Theme
 
 # adding webkitAppRegion to default theme
-theme.UIElement.push {WebkitAppRegion: 'no-drag', cursor: 'pointer'}
-theme.UIElementContainer = (disabled, useHighlight, forceHighlight)-> [
-    if useHighlight
-        ':hover': [
-            mixins.boxShadow theme.shadows.smallSoft
-            background: 'white'
-            ]
-    if forceHighlight
-        [
-            mixins.boxShadow theme.shadows.smallSoft
-            background: 'white'
-        ]
-    mixins.transition '250ms', 'background shadow width'
-    if disabled
+theme.UIElement.WebkitAppRegion = 'no-drag'
+theme.UIElementContainer = (disabled, highlighted)-> {
+    (if highlighted
+        boxShadow: theme.shadows.smallSoft
+        background: 'white'
+    else
+        boxShadow: null
+        background: 'transparent'
+    )...
+    mixins.transition('500ms', 'background shadow width')...
+    (if disabled
         opacity: 0.5
         pointerEvents: 'none'
     else
         opacity: 1
         pointerEvents:'all'
+    )...
     minHeight:'auto'
     borderRadius: theme.radius.r3
-]
+}
 
+# global theme customization
 theme.colors.green = 'rgb(194, 228, 157)'
 theme.colors.light_green = 'rgb(200, 244, 187)'
 theme.colors.light_orange = 'rgb(255, 181, 132)'
 theme.colors.orange = 'rgb(255, 171, 112)'
 
+theme.button.maxWidth = 200
+theme.slider.value.width = 'auto'
+theme.slider.value.textAlign = 'center'
+
 myoui = new MyoUI theme
 
-# Creating instances of myoui elements
-text_input = new myoui.TextInput
-    label: (maxWidth='calc(100% - 30px)')->
-        maxWidth: 'calc(100% - 10px)'
-        margin: "0px #{theme.spacing}px"
-
-button = new myoui.Button
-    button:
-        maxWidth: 200
-
-switch_element = new myoui.Switch
-
-
-slider = new myoui.Slider
-    value: [
-        width: 'auto'
-        textAlign: 'center'
-    ]
-
-{div} = react_utils.React.DOM
-message = (message, custom_style, key=Math.floor(1000000*Math.random())) ->
-    div
-        key:key
-        className: 'myoui'
-        style:[
-            whiteSpace: 'pre-wrap'
-            theme.UIElement
-            minHeight: 'auto'
-            textAlign: 'center'
-            fontSize: 20
-            fontWeight: 100
-            alignSelf: 'center'
-            WebkitAppRegion: 'drag'
-            custom_style
-        ]
-        message
-
-
-components = {
-    slider: slider.ui
-    button:button.ui
-    text_input: text_input.ui
-    switch: switch_element.ui
-    message
-    update: ->
-        slider.update()
-}
+components =
+    slider: (props={}, children)-> react_utils.React.createElement myoui.Slider, props, children
+    button: (props={}, children)-> react_utils.React.createElement myoui.Button, props, children
+    text_input: (props={}, children)-> react_utils.React.createElement myoui.TextInput, props, children
+    switch: (props={}, children)-> react_utils.React.createElement myoui.Switch, props, children
+    message: (message, custom_style, key=Math.floor(1000000*Math.random())) ->
+        react_utils.React.createElement 'div',
+            key:key
+            className: 'myoui'
+            style: {
+                theme.UIElement...
+                whiteSpace: 'pre-wrap'
+                minHeight: 'auto'
+                textAlign: 'center'
+                fontSize: 20
+                fontWeight: 100
+                alignSelf: 'center'
+                WebkitAppRegion: 'drag'
+                custom_style...
+            }
+            message
 
 sounds = {
     notification: new Audio path.join __dirname, '../../assets/sounds/notification.mp3'

@@ -2,8 +2,9 @@
 
 {react_utils, theme, mixins, components, sounds, format_time} = require './common.coffee'
 # MyoUI includes some React utils.
-{Component, React, ReactDOM} = react_utils
-{div} = React.DOM
+{React, ReactDOM} = react_utils
+e = React.createElement
+
 # "Component" returns a radium component which will allow us
 # to use arrays and objects combined in the same style property.
 
@@ -112,7 +113,7 @@ apply_settings = ->
     report_registered = globalShortcut.register settings.global_shortcuts.report_window, show_report_window
     settings_registered = globalShortcut.register settings.global_shortcuts.settings_window, show_settings_window
     sound_test_registered = globalShortcut.register settings.global_shortcuts.sound_test, ->
-        sounds.notification.play()
+        ui_alarm()
 
     if main_registered
         show_main_window_shortcut = settings.global_shortcuts.main_window
@@ -273,7 +274,15 @@ ui_alarm = ->
 current_dialog = 0
 working_on_value = ''
 selected_reward = 0
-main_component = Component
+
+
+class MainComponent extends React.Component
+    constructor: (props={})->
+        super props
+        @state =
+            dialog: 0
+            auto_highlight: true
+
     componentDidUpdate: ->
         current_dialog = @state.dialog
 
@@ -284,7 +293,6 @@ main_component = Component
                 @setState {dialog:0}
         else
             selected_reward = log_reward
-
 
     componentWillMount: ->
         current_dialog = @state.dialog
@@ -327,9 +335,7 @@ main_component = Component
             no_shortcut = false
             console.warn 'Global shorcut in use: ' + settings.global_shortcuts.no
 
-    getInitialState: ->
-        dialog: 0
-        auto_highlight: true
+
     render: ->
         if hidden_window
             return null
@@ -380,12 +386,12 @@ main_component = Component
         dialogs = [
             [
                 components.message are_you_working_message
-                div
+                e 'div',
                     key: 'yes_no_container'
-                    style: [
-                        mixins.rowFlex
+                    style: {
+                        mixins.rowFlex...
                         alignSelf: 'center'
-                    ]
+                    }
                     components.button
                         label:'yes'
                         useHighlight:true
@@ -423,24 +429,25 @@ main_component = Component
                 components.message '''
                     What are you working on?
                     '''
-                div
+                e 'div',
                     key: 'waywo_answer'
                     title:"I'll ask you again in 5 minutes"
-                    style: [
-                        mixins.rowFlex
+                    style: {
+                        mixins.rowFlex...
                         alignSelf: 'center'
                         width: 'calc(100% - 30px)'
-                    ]
+                    }
                     components.text_input
+                        theme: UIElement:{theme.UIElement..., cursor:'pointer'}
                         autoFocus: true
-                        useHighlight: true
                         forceHighlight: auto_highlight and log.last_entry?.task
                         label: "I'm working on"
                         read: -> working_on_value
                         onSubmit: working_on_submit
                         onChange: (new_value)=>
-                            set_auto_hide_time Infinity
-                            @setState {writing_working_on:true}
+                            if not @state.writing_working_on
+                                set_auto_hide_time Infinity
+                                @setState {writing_working_on:true}
                             working_on_value = new_value
                         onClick: (event)=>
                             if event.target.className != 'text_input'
@@ -489,13 +496,13 @@ main_component = Component
                     read: -> selected_reward
                     onSlideEnd: (v)-> selected_reward = v
 
-                div
+                e 'div',
                     key: 'cancel_ok_container'
-                    style: [
-                        mixins.rowFlex
+                    style: {
+                        mixins.rowFlex...
                         alignSelf: 'center'
                         margin: "10px 0 10px 0"
-                    ]
+                    }
                     components.button
                         label:'cancel'
                         useHighlight:true
@@ -522,10 +529,10 @@ main_component = Component
             ewin.close()
             return
 
-        div
+        e 'div',
             id: 'main_container'
-            style: [
-                mixins.columnFlex
+            style: {
+                mixins.columnFlex...
                 justifyContent: 'center'
                 alignItems: 'center'
                 top: '0'
@@ -533,28 +540,29 @@ main_component = Component
                 position: 'absolute'
                 overflowX: 'hidden'
                 WebkitAppRegion: 'drag'
-                mixins.transition '0.5s', 'background-color'
-                if is_linux then [
+                mixins.transition('0.5s', 'background-color')...
+                (if is_linux
                     left: 0
                     width: '100vw'
                     height: '100vh'
                     borderRadius: 0
-                ] else [
+                else {
+                    mixins.border3d(0.5)...
                     left: 4
                     width: 'calc(100vw - 10px)'
                     height: 'calc(100vh - 13px)'
                     borderRadius: theme.radius.r4
-                    mixins.border3d 0.5
-                    mixins.boxShadow theme.shadows.hard
-                ]
+                    boxShadow: theme.shadows.hard
+                }
+                )...
 
-            ]
+            }
             dialog
 
 
 # Rendering main_component with ReactDOM in our HTML element `app`
 render_all= ->
-    ReactDOM.render main_component(), app_element
+    ReactDOM.render e(MainComponent), app_element
 
 log.enable_last_date_checker()
 selected_reward = log.get_reward()

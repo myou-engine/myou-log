@@ -1,17 +1,15 @@
 {react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common.coffee'
-{Component, React, ReactDOM} = react_utils
-{div, b} = React.DOM
-
+{React, ReactDOM} = react_utils
+e = React.createElement
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
 
-box_style = [
-    mixins.boxShadow '0 5px 10px rgba(0,0,0,0.1)'
+box_style =
+    boxShadow: '0 5px 10px rgba(0,0,0,0.1)'
     background: 'white'
     padding: '10px 10px 10px 0'
     margin: '0 20px 0 20px'
     borderRadius: theme.radius.r2
-]
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
@@ -27,25 +25,26 @@ ewin.setSize new_width, size[1]
 ewin.setMinimumSize new_width, min_height
 
 {settings, load_settings, save_settings, apply_default_settings, isDebug} = ewin
-main_component = Component
+
+class SettingsComponent extends React.Component
     render: ->
-        div
+        e 'div',
             className: 'myoui'
-            style:[
-                theme.fontStyles.p
+            style:{
+                theme.fontStyles.p...
                 color: theme.colors.t1
                 textShadow: theme.shadows.textWhite
                 overflow: 'hidden'
                 height: '100vh'
                 width: '100%'
                 backgroundColor: theme.colors.light
-            ]
-            div
+            }
+            e 'div',
                 className: 'Floating bar'
-                style: [
-                    theme.fontStyles.titleLightS
-                    mixins.rowFlex
-                    mixins.boxShadow '0 5px 10px rgba(0,0,0,0.1)'
+                style: {
+                    theme.fontStyles.titleLightS...
+                    mixins.rowFlex...
+                    boxShadow: '0 5px 10px rgba(0,0,0,0.1)'
                     width: '100vw'
                     height: 50
                     background: 'white'
@@ -53,8 +52,7 @@ main_component = Component
                     top: 0
                     justifyContent: 'space-around'
                     zIndex: 1000
-
-                ]
+                }
 
                 components.button
                     label:"Set default settings"
@@ -63,37 +61,35 @@ main_component = Component
                         apply_default_settings()
                         save_settings(isDebug)
                         render_all()
-            div
+            e 'div',
                 id: 'main_container'
-                style: [
+                style:
                     width: '100%'
                     height: 'calc(100vh - 50px)'
                     overflowX: 'hidden'
                     WebkitAppRegion: 'drag'
                     marginTop: 50
 
-                ]
-                div
+                e 'div',
                     style:
                         maxWidth: 1000
                         margin: '0 auto'
                         paddingTop: 10
 
-                    div
-                        style:[
-                            mixins.rowFlex
+                    e 'div',
+                        style: {
+                            mixins.rowFlex...
                             alignItems: 'flex-start'
                             justifyContent: 'center'
-                            ]
+                        }
 
-                        div
-                            style:[
+                        e 'div',
+                            style:
                                 width: '50%'
-                            ]
 
                             components.message 'Timers'
 
-                            div {style:box_style},
+                            e 'div', {style:box_style},
                                 components.slider
                                     label: 'Inactivity check'
                                     min: 1
@@ -148,7 +144,7 @@ main_component = Component
                                         save_settings(isDebug)
 
                             components.message "Time to rest"
-                            div {style:box_style},
+                            e 'div', {style:box_style},
                                 components.slider
                                     label: 'Reward ratio'
                                     min: 1/8
@@ -177,13 +173,12 @@ main_component = Component
                                         save_settings(isDebug)
 
 
-                        div
-                            style:[
+                        e 'div',
+                            style:
                                 width: '50%'
-                            ]
 
                             components.message 'Global Shortcuts'
-                            div {style:box_style},
+                            e 'div', {style:box_style},
                                 components.text_input
                                     label: "Answer YES"
                                     read: -> settings.global_shortcuts.yes
@@ -222,12 +217,12 @@ main_component = Component
                                         save_settings(isDebug)
                     components.message 'System'
 
-                    div
-                        style: [
-                            box_style
-                            mixins.rowFlex
+                    e 'div',
+                        style: {
+                            box_style...
+                            mixins.rowFlex...
                             width: 'calc(100% - 40px)'
-                        ]
+                        }
                         components.text_input
                             label: "Log file"
                             read: -> settings.log_file
@@ -243,10 +238,9 @@ main_component = Component
                                 write: (currentState)->
                                     settings.open_on_startup = (((currentState + 1) % 2) and true) or false
                                     save_settings(isDebug)
-
                             ]
 # Rendering main_component with ReactDOM in our HTML element `app`
 render_all= ->
-    ReactDOM.render main_component(), app_element
+    ReactDOM.render e(SettingsComponent), app_element
 
 render_all()

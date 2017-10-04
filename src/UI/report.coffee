@@ -1,6 +1,9 @@
 {react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common.coffee'
-{Component, React, ReactDOM} = react_utils
-{div, form, input, b} = React.DOM
+{React, ReactDOM} = react_utils
+e = (t, args...) ->
+    if not t.prototype?.render? and not t.toLocaleUpperCase?
+        debugger
+    React.createElement t, args...
 {Log} = require '../log'
 
 electron = require 'electron'
@@ -33,12 +36,12 @@ update_today = ->
 
 update_today()
 
-main_component = Component
-    # componentDidUpdate: ->
-    # componentWillMount: ->
-    getInitialState: ->
-        date_from: 0
-        date_to: Date.now()
+class ReportComponent extends React.Component
+    constructor: (props={})->
+        super props
+        @state =
+            date_from: 0
+            date_to: Date.now()
 
     render: ->
         date_now = Date.now()
@@ -53,88 +56,86 @@ main_component = Component
         f_max_date_from = new Date(max_date_from).toJSON().split('T')[0]
         f_min_date_to = new Date(min_date_to).toJSON().split('T')[0]
         f_max_date_to = new Date(date_now).toJSON().split('T')[0]
-        div
+        e 'div',
             className: 'myoui'
-            style:[
-                theme.fontStyles.p
+            style:{
+                theme.fontStyles.p...
                 color: theme.colors.t1
                 textShadow: theme.shadows.textWhite
                 overflow: 'hidden'
                 height: '100vh'
-            ]
-            div
+            }
+            e 'div',
                 className: 'form_container'
-                style: [
-                    theme.fontStyles.titleLightS
-                    mixins.rowFlex
-                    mixins.boxShadow '0 5px 10px rgba(0,0,0,0.1)'
+                style: {
+                    theme.fontStyles.titleLightS...
+                    mixins.rowFlex...
+                    boxShadow: '0 5px 10px rgba(0,0,0,0.1)'
                     width: '100vw'
                     background: 'white'
                     position: 'fixed'
                     justifyContent: 'space-around'
                     zIndex: 1000
-                ]
-                form
-                    style:[
-                        mixins.rowFlex
+                }
+                e 'form',
+                    style:{
+                        mixins.rowFlex...
                         width: '100vw'
                         maxWidth: 1000
                         justifyContent: 'space-around'
                         padding: '0 40px 0 40px'
-                    ]
+                    }
 
                     "Date range"
-                    div
-                        style:[
-                            mixins.rowFlex
-                            theme.fontStyles.p
-                        ]
+                    e 'div',
+                        style:{
+                            mixins.rowFlex...
+                            theme.fontStyles.p...
+                        }
                         "from"
-                        input
-                            style:[
+                        e 'input',
+                            style:{
+                                mixins.border3d(0.1, '1px', true)...
                                 padding: 4
                                 margin: 10
                                 borderRadius: theme.radius.r1
                                 background: theme.colors.light
-                                mixins.border3d 0.1, '1px', true
-                                mixins.boxShadow '0 0px 10px rgba(0,0,0,0.1) inset'
-
-                            ]
+                                boxShadow: '0 0px 10px rgba(0,0,0,0.1) inset'
+                            }
 
                             type: 'date'
                             name: 'date_value'
                             defaultValue: f_min_date_from
                             min: f_min_date_from
                             max: f_max_date_from
-                            onChange: (e)=>
-                                e.target.value = e.target.value or f_min_date_from
-                                @setState {date_from: Date.parse(e.target.value)}
-                    div
-                        style:[
-                            mixins.rowFlex
-                            theme.fontStyles.p
-                        ]
+                            onChange: (event)=>
+                                event.target.value = event.target.value or f_min_date_from
+                                @setState {date_from: Date.parse(event.target.value)}
+                    e 'div',
+                        style:{
+                            mixins.rowFlex...
+                            theme.fontStyles.p...
+                        }
                         "to"
-                        input
-                            style:[
+                        e 'input',
+                            style:{
+                                mixins.border3d(0.1, '1px', true)...
                                 padding: 4
                                 margin: 10
                                 borderRadius: theme.radius.r1
                                 background: theme.colors.light
-                                mixins.border3d 0.1, '1px', true
-                                mixins.boxShadow '0 0px 10px rgba(0,0,0,0.1) inset'
-
-                            ]
+                                boxShadow: '0 0px 10px rgba(0,0,0,0.1) inset'
+                            }
                             type: 'date'
                             name: 'date_value'
                             defaultValue: f_max_date_to
                             min: f_min_date_to
                             max: f_max_date_to
-                            onChange: (e)=>
-                                e.target.value = e.target.value or f_max_date_to
-                                @setState {date_to: Date.parse(e.target.value)}
+                            onChange: (event)=>
+                                event.target.value = event.target.value or f_max_date_to
+                                @setState {date_to: Date.parse(event.target.value)}
 
-            div
+            e 'div',
                 id: 'bottom_border_shadow'
                 style:
                     width: '100vw'
@@ -145,9 +146,9 @@ main_component = Component
                     zIndex: 1000
                     background: "linear-gradient(to top, rgba(0,0,0,0.1) 0%, transparent 100%)"
 
-            div
+            e 'div',
                 id: 'main_container'
-                style: [
+                style: {
                     left: 0
                     top: 50
                     paddingTop: 20
@@ -158,48 +159,44 @@ main_component = Component
                     position: 'absolute'
                     overflowX: 'hidden'
                     WebkitAppRegion: 'drag'
-                ]
+                }
                 for day,i in days when @state.date_to + 24*60*60*1000 >= day >= @state.date_from
                     date = moment(day)
                     fdate = date.format("dddd [#{if day == today then " (Today)" else ""}\n\n__]MMM Do[__ -] YYYY")
 
                     day_entries = entries_by_day[day]
-                    div
+                    e 'div',
                         key: 'entry_' + i
-                        style:[
-                            theme.fontStyles.titleLightS
+                        style:{
+                            theme.fontStyles.titleLightS...
+                            mixins.columnFlex...
                             fontSize: 18
                             width: '100%'
                             maxWidth: 900
                             margin: '0 auto 0 auto'
-                            mixins.columnFlex
-                        ]
-                        div
-                            style:[
+                        }
+                        e 'div',
+                            style:{
+                                mixins.rowFlex...
                                 width: '100%'
-                                mixins.rowFlex
                                 justifyContent: 'space-between'
-                            ]
-                            div
-                                style:[
+                            }
+                            e 'div',
+                                style:
                                     width: '40%'
-                                ]
-                                div
+                                e 'div',
                                     # className: 'myoui'
-                                    style: [
-                                        paddingLeft:40
-
-                                    ]
+                                    style:
+                                        paddingLeft: 40
                                     markdown {}, fdate
-                            div
-                                style:[
+                            e 'div',
+                                style:{
                                     width: '20%'
-                                ]
-                                div
+                                }
+                                e 'div',
                                     key: 'details_' + i
-                                    style:[
+                                    style:
                                         width: 150
-                                    ]
                                     components.switch
                                         flip: true
                                         label: 'detailed'
@@ -207,68 +204,63 @@ main_component = Component
                                         write: do(i)->(currentState)->
                                             render_all()
                                             days_state[i].details = (currentState + 1) % 2
-                            div
-                                style:[
+                            e 'div',
+                                style:
                                     width: '40%'
                                     textAlign: 'right'
                                     paddingRight: 20
-                                ]
-                                div {style: {paddingRight:20}}, format_time days_state[i].activity_duration
 
-                        div
-                            style:[
-                                mixins.columnFlex
-                                mixins.boxShadow '0 5px 10px rgba(0,0,0,0.1)'
-                                theme.fontStyles.p
+                                e 'div', {style: {paddingRight:20}}, format_time days_state[i].activity_duration
+
+                        e 'div',
+                            style:{
+                                mixins.columnFlex...
+                                theme.fontStyles.p...
+                                boxShadow: '0 5px 10px rgba(0,0,0,0.1)'
                                 width: "calc(100% - 80px)"
                                 background: 'white'
                                 padding: 10
                                 margin: '10px 20px 40px 20px'
                                 borderRadius: theme.radius.r2
-
-                            ]
+                            }
                             if days_state[i].details
                                 for {task, date, duration, active, pause}, ii in day_entries when not pause?
-                                    div
+                                    e 'div',
                                         style:
                                             width: '100%'
-                                        div
-                                            style:[
-                                                mixins.rowFlex
+                                        e 'div',
+                                            style:{
+                                                mixins.rowFlex...
                                                 opacity: if active then 1 else 0.5
                                                 width: '100%'
                                                 justifyContent: 'space-between'
                                                 padding: '10px 20px 10px 20px'
-                                            ]
-                                            div
-                                                style:[
-                                                ]
-                                                b {}, if active then task or 'Unknown' else "inactivity"
-                                            div
-                                                style:[
-                                                    mixins.rowFlex
+                                            }
+                                            e 'div',
+                                                style:{}
+                                                e 'b', {}, if active then task or 'Unknown' else "inactivity"
+                                            e 'div',
+                                                style:{
+                                                    mixins.rowFlex...
                                                     justifyContent: 'flex-end'
-                                                ]
-                                                div
-                                                    style:[
+                                                }
+                                                e 'div',
+                                                    style:{
                                                         textAlign: 'right'
                                                         overflow: 'hidden'
-                                                    ]
-                                                    div
-                                                        format_time duration
-                                                div
-                                                    style:[
+                                                    }
+                                                    format_time duration
+                                                e 'div',
+                                                    style:{
                                                         textAlign: 'right'
                                                         fontSize: 12
                                                         fontWeight: 100
                                                         width: 80
-                                                    ]
-                                                    div
-                                                        style: []
-                                                        moment(date).format('hh:mm:ss a')
+                                                    }
+                                                    moment(date).format('hh:mm:ss a')
 
                                         if ii+1 < day_entries.length
-                                            div
+                                            e 'div',
                                                 style:
                                                     borderBottom: "1px solid #{theme.colors.light}"
                                                     width: 'calc(100% - 40px)'
@@ -280,32 +272,29 @@ main_component = Component
                                 ii = 0
                                 for task, duration of days_state[i].collapsed_entries
                                     ii++
-                                    div
+                                    e 'div',
                                         style:
                                             width: '100%'
-                                        div
-                                            style:[
-                                                mixins.rowFlex
+                                        e 'div',
+                                            style:{
+                                                mixins.rowFlex...
                                                 # borderBottom: "1px solid #{theme.colors.light}"
                                                 width: '100%'
                                                 justifyContent: 'space-between'
                                                 padding: '10px 20px 10px 20px'
-                                            ]
-                                            div
-                                                style:[
-                                                ]
-                                                b {}, task or 'Unknown'
+                                            }
+                                            e 'div',
+                                                style:{}
+                                                e 'b', {}, task or 'Unknown'
 
-                                            div
-                                                style:[
+                                            e 'div',
+                                                style:
                                                     textAlign: 'right'
                                                     overflow: 'hidden'
-                                                ]
-                                                div
-                                                    format_time duration
+                                                format_time duration
 
                                         if ii < length
-                                            div
+                                            e 'div',
                                                 style:
                                                     borderBottom: "1px solid #{theme.colors.light}"
                                                     width: 'calc(100% - 40px)'
@@ -317,10 +306,9 @@ main_component = Component
             #         print()
             #     label: 'Print report'
 
-# Rendering main_component with ReactDOM in our HTML element `app`
 render_all= ->
     update_today()
-    ReactDOM.render main_component(), app_element
+    ReactDOM.render e(ReportComponent), app_element
 
 load_log = (log)->
     final_entries = []
@@ -338,18 +326,18 @@ load_log = (log)->
     day = 0
     previous = 0
     final_entries = []
-    for e in entries
-        real_day = get_day e.date
-        if day==0 or e.date - Math.max(previous, real_day) > day_boundary_inactivity
+    for entry in entries
+        real_day = get_day entry.date
+        if day==0 or entry.date - Math.max(previous, real_day) > day_boundary_inactivity
             day = real_day
-        previous = e.date
-        e.day = day
-        final_entries.push e
+        previous = entry.date
+        entry.day = day
+        final_entries.push entry
     final_entries.reverse()
 
-    for e,i in final_entries
-        e.details = 0
-        day = e.day
+    for entry,i in final_entries
+        entry.details = 0
+        day = entry.day
         if day not in days
             days.push day
             days_state.push
@@ -358,20 +346,20 @@ load_log = (log)->
                 activity_duration: 0
                 inactivity_duration: 0
         if entries_by_day[day]?
-            entries_by_day[day].push e
+            entries_by_day[day].push entry
         else
-            entries_by_day[day] = [e]
+            entries_by_day[day] = [entry]
         day_state = days_state[days.length-1]
-        if e.active
-            task = e.task or 'Unknown'
-            day_state.activity_duration += e.duration
+        if entry.active
+            task = entry.task or 'Unknown'
+            day_state.activity_duration += entry.duration
             if day_state.collapsed_entries[task]?
-                day_state.collapsed_entries[task] += e.duration
+                day_state.collapsed_entries[task] += entry.duration
             else
-                day_state.collapsed_entries[task] = e.duration
+                day_state.collapsed_entries[task] = entry.duration
 
         else
-            day_state.inactivity_duration += e.duration
+            day_state.inactivity_duration += entry.duration
 
     render_all()
 

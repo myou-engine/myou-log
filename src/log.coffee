@@ -184,9 +184,9 @@ class Log
             entry.date_str = new Date(date).toISOString()
 
         if pause?
-            console.log "%c#{if pause then 'PAUSE' else 'PLAY'}
-                #{new Date(date).toLocaleString()}",
-                "color:#{if pause then 'red' else 'green'}"
+            # console.log "%c#{if pause then 'PAUSE' else 'PLAY'}
+            #     #{new Date(date).toLocaleString()}",
+            #     "color:#{if pause then 'red' else 'green'}"
             @is_paused = pause
             @entries.push entry
             if save
@@ -202,10 +202,10 @@ class Log
                 @last_task = task
             @is_active = active
             @is_paused = false
-            console.log "%c#{if active then 'working on' else 'distracted'}
-                 #{if task then task else if active then 'UNKNOWN' else ''}
-                 #{new Date(date).toLocaleString()}",
-                 "color:#{if active then 'blue' else 'gray'}"
+            # console.log "%c#{if active then 'working on' else 'distracted'}
+            #      #{if task then task else if active then 'UNKNOWN' else ''}
+            #      #{new Date(date).toLocaleString()}",
+            #      "color:#{if active then 'blue' else 'gray'}"
             @entries.push entry
             @last_entry = entry
             if save

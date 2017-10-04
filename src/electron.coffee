@@ -151,4 +151,4 @@ else
     electron = require 'electron-prebuilt'
     proc = require 'child_process'
     # spawn electron
-    child = proc.spawnSync electron, ["node_modules/coffee-script/bin/coffee", __filename], {stdio: 'inherit', shell: true}
+    child = proc.spawnSync electron, ["node_modules/coffeescript/bin/coffee", __filename], {stdio: 'inherit', shell: true}
