@@ -11,7 +11,7 @@ moment = require 'moment'
 markdown = react_utils.React.createFactory require('react-remarkable')
 theme = new Theme
 
-# adding webkitAppRegion to default theme
+# adding WebkitAppRegion to default theme
 theme.UIElement.WebkitAppRegion = 'no-drag'
 theme.UIElementContainer = (disabled, highlighted)-> {
     (if highlighted

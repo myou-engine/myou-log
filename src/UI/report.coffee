@@ -8,7 +8,6 @@ e = (t, args...) ->
 
 electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
-settings = ewin.settings
 app_element = document.getElementById 'app'
 
 # Adjusting window size to include window border
@@ -22,13 +21,7 @@ ewin.setMinimumSize new_width, min_height
 
 last_date = null
 
-final_entries = []
-entries_by_day = {}
-days_state = []
-days = []
-
-tzoffset = (new Date()).getTimezoneOffset()*60*1000
-get_day = (date)-> Math.floor((date-tzoffset)/1000/60/60/24)*1000*60*60*24 + tzoffset
+{report_log, get_day, final_entries, entries_by_day, days_state, days} = require '../report_log'
 
 today = 0
 update_today = ->
@@ -310,67 +303,16 @@ render_all= ->
     update_today()
     ReactDOM.render e(ReportComponent), app_element
 
-load_log = (log)->
-    final_entries = []
-    entries_by_day = {}
-    days_state = []
-    days = []
-
-    last_was_active = false
-    last_task = null
-    entries = log.get_clean_entries()
-    log.add_duration(entries)
-
-    # add day boundaries and invert
-    {day_boundary_inactivity} = settings
-    day = 0
-    previous = 0
-    final_entries = []
-    for entry in entries
-        real_day = get_day entry.date
-        if day==0 or entry.date - Math.max(previous, real_day) > day_boundary_inactivity
-            day = real_day
-        previous = entry.date
-        entry.day = day
-        final_entries.push entry
-    final_entries.reverse()
-
-    for entry,i in final_entries
-        entry.details = 0
-        day = entry.day
-        if day not in days
-            days.push day
-            days_state.push
-                details:0
-                collapsed_entries:{}
-                activity_duration: 0
-                inactivity_duration: 0
-        if entries_by_day[day]?
-            entries_by_day[day].push entry
-        else
-            entries_by_day[day] = [entry]
-        day_state = days_state[days.length-1]
-        if entry.active
-            task = entry.task or 'Unknown'
-            day_state.activity_duration += entry.duration
-            if day_state.collapsed_entries[task]?
-                day_state.collapsed_entries[task] += entry.duration
-            else
-                day_state.collapsed_entries[task] = entry.duration
-
-        else
-            day_state.inactivity_duration += entry.duration
-
-    render_all()
-
 own_log = require('../log').log
 
-load_log own_log
+report_log own_log
+
+render_all()
 
 window.load_other_log = (path)->
     l = new Log
     l.load path
-    load_log l
+    report_log l
     return l
 
 addEventListener 'keydown', (event)->
@@ -378,4 +320,4 @@ addEventListener 'keydown', (event)->
         ewin.webContents.openDevTools({mode:'detach'})
     if (event.ctrlKey and event.keyCode == 82) or event.keyCode == 116 # ctrl + r or F5
         event.preventDefault()
-        load_log(own_log)
+        report_log(own_log)

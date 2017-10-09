@@ -28,8 +28,6 @@ new_width = size[0] + window_border_width
 min_height = ewin.getMinimumSize()[1]
 ewin.setSize new_width, size[1]
 ewin.setMinimumSize new_width, min_height
-console.log new_width, min_height
-
 
 ewin.on 'close', ()->
     report_window?.close()
@@ -254,7 +252,6 @@ set_inactivity_check = ->
     check_reminder = ->
         if log.is_active and not hidden_window
             last_reminder_interval = setTimeoutSH check_reminder, settings.reminder_time
-            console.log hidden_window, log.is_active
             ui_alarm()
 
     last_check_inactivity_interval = setTimeoutSH check_inactivity,
@@ -314,7 +311,13 @@ class Time extends React.Component
     componentWillUnmount: ->
         clearInterval @interval
     render: ->
-        @props.text.replace('#time', @state.formated_time)
+        e 'div',
+            style:
+                WebkitAppRegion: (@props.no_drag and 'no-drag') or ''
+            @props.text.replace('#time', @state.formated_time)
+
+{get_todays_activity_duration} = require '../report_log'
+window.today_total = -> get_todays_activity_duration(log)
 
 class MainComponent extends React.Component
     constructor: (props={})->
@@ -413,11 +416,13 @@ class MainComponent extends React.Component
                     text: "You've been working for\n #time\n\n
                         Are you still working?"
                     time: time
+                    no_drag: true
                 if time_since_show_window >= settings.reminder_time
                     are_you_working_message = e Time,
-                        text: "It looks like you've \nbeen distracted for\n#time}\n\n
+                        text: "It looks like you've \nbeen distracted for\n#time\n\n
                             Were you working?"
                         time: time_since_show_window
+                        no_drag: true
 
             else
                 reminder_time = null
@@ -425,10 +430,14 @@ class MainComponent extends React.Component
                     text: "You've been distracted for\n#time\n\n
                         Did you start working?"
                     time: time_since_show_window
+                    no_drag: true
 
         dialogs = [
             [
-                components.message are_you_working_message
+                e 'div',
+                    title: 'Work time so far today\n' + format_time get_todays_activity_duration(log)
+                    style: WebkitAppRegion: 'no-drag'
+                    components.message are_you_working_message
                 e 'div',
                     key: 'yes_no_container'
                     style: {
