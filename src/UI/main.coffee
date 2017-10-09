@@ -429,7 +429,7 @@ class MainComponent extends React.Component
                 are_you_working_message = e Time,
                     text: "You've been distracted for\n#time\n\n
                         Did you start working?"
-                    time: time_since_show_window
+                    time: time
                     no_drag: true
 
         dialogs = [
