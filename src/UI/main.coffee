@@ -35,11 +35,28 @@ ewin.on 'close', ()->
     report_window?.close()
     settings_window?.close()
 
+# Sound hack for Pulseaudio (using setTimeoutSH instead of setTimeout)
+# we play the notification sound muted a little bit before showing
+# the window and playing it again to ensure pulseaudio doesn't chop it
+setTimeoutSH = (f, t) ->
+    timer_id = setTimeout f, t
+    hack_id = setTimeout ->
+        sounds.notification.muted = true
+        sounds.notification.play().then ->
+            sounds.notification.src += ''
+    , t-1000
+    return {timer_id, hack_id}
+
+clearTimeoutSH = (ids) ->
+    {timer_id, hack_id} = ids or {}
+    clearTimeout hack_id
+    clearTimeout timer_id
+
 {Tray, Menu, app, globalShortcut} = electron.remote
 path = require 'path'
 
 addEventListener 'keydown', (event)->
-    if event.keyCode == 123
+    if event.keyCode == 123 # F12
         ewin.webContents.openDevTools({mode:'detach'})
 
 report_window = null
@@ -80,8 +97,8 @@ no_shortcut = false
 sound_test = false
 
 apply_settings = ->
-    clearTimeout show_window_timeout
-    clearInterval last_check_inactivity_interval
+    clearTimeoutSH show_window_timeout
+    clearTimeoutSH last_check_inactivity_interval
 
     if settings.open_on_startup
         auto_launcher.isEnabled().then (enabled)->
@@ -202,14 +219,14 @@ hide_window = (break_time=0)->
     console.log "Set timeout to show window in #{format_time break_time}."
     show = ->
         show_window(true)
-    show_window_timeout = setTimeout show, break_time
+    show_window_timeout = setTimeoutSH show, break_time
 
 show_window_time = 0
 show_window = (alarm)->
     hidden_window = false
     show_window_time = Date.now()
     ewin.setAlwaysOnTop true
-    clearTimeout show_window_timeout
+    clearTimeoutSH show_window_timeout
     # play again (not pause)
     if log.is_paused
         log.new_entry {pause:false, date:show_window_time}
@@ -225,21 +242,24 @@ show_window = (alarm)->
 last_check_inactivity_interval = null
 last_reminder_interval = null
 set_inactivity_check = ->
-    clearInterval last_check_inactivity_interval
-    clearInterval last_reminder_interval
+    clearTimeoutSH last_check_inactivity_interval
+    clearTimeoutSH last_reminder_interval
     check_inactivity = ->
         if not hidden_window
+            last_check_inactivity_interval = setTimeoutSH check_inactivity,
+                settings.inactivity_check_interval
             set_dialog 0
             log.new_entry {active:false, date:show_window_time}
             ui_alarm()
     check_reminder = ->
         if log.is_active and not hidden_window
+            last_reminder_interval = setTimeoutSH check_reminder, settings.reminder_time
             console.log hidden_window, log.is_active
             ui_alarm()
 
-    last_check_inactivity_interval = setInterval check_inactivity,
+    last_check_inactivity_interval = setTimeoutSH check_inactivity,
         settings.inactivity_check_interval
-    last_reminder_interval = setInterval check_reminder, settings.reminder_time
+    last_reminder_interval = setTimeoutSH check_reminder, settings.reminder_time
 
 
 addEventListener 'click', set_inactivity_check
@@ -319,6 +339,7 @@ class MainComponent extends React.Component
 
         ui_alarm = (duration=1000)=>
             @setState {alarm:true}
+            sounds.notification.muted = false
             sounds.notification.play()
             disable_alarm = =>
                 @setState {alarm:false}
