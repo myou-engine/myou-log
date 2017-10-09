@@ -275,6 +275,26 @@ current_dialog = 0
 working_on_value = ''
 selected_reward = 0
 
+class Time extends React.Component
+    constructor: (props={})->
+        super props
+        @state =
+            time: props.time
+            start_time: Date.now()
+            formated_time: format_time props.time
+
+    componentWillMount: ->
+        @interval = setInterval =>
+            elapsed_time =  Date.now() - @state.start_time
+            time = @state.time + elapsed_time
+            formated_time = format_time time
+            if @state.formated_time != formated_time
+                @setState {formated_time}
+        , 1000
+    componentWillUnmount: ->
+        clearInterval @interval
+    render: ->
+        @props.text.replace('#time', @state.formated_time)
 
 class MainComponent extends React.Component
     constructor: (props={})->
@@ -368,20 +388,22 @@ class MainComponent extends React.Component
 
         if log.entries.length
             if log.is_active
-                are_you_working_message = "
-                    You've been working for\n#{format_time(time)}\n\n
-                    Are you still working?"
+                are_you_working_message = e Time,
+                    text: "You've been working for\n #time\n\n
+                        Are you still working?"
+                    time: time
                 if time_since_show_window >= settings.reminder_time
-                    are_you_working_message = "
-                        It looks like you've \nbeen distracted for\n#{format_time(time_since_show_window)}\n\n
-                        Were you working?
-                    "
+                    are_you_working_message = e Time,
+                        text: "It looks like you've \nbeen distracted for\n#time}\n\n
+                            Were you working?"
+                        time: time_since_show_window
 
             else
                 reminder_time = null
-                are_you_working_message = "
-                    You've been distracted for\n#{format_time(time)}\n\n
-                    Did you start working?"
+                are_you_working_message = e Time,
+                    text: "You've been distracted for\n#time\n\n
+                        Did you start working?"
+                    time: time_since_show_window
 
         dialogs = [
             [
@@ -418,7 +440,7 @@ class MainComponent extends React.Component
                         components.button
                             label: 'rest'
                             useHighlight: true
-                            title:"Available time:\n#{format_time log_reward}"
+                            title: "Available time:\n#{format_time log_reward}"
                             onClick: =>
                                 selected_reward = Math.max settings.reward_pack, Math.min selected_reward, log_reward
                                 @setState dialog: 2
@@ -567,8 +589,5 @@ render_all= ->
 log.enable_last_date_checker()
 selected_reward = log.get_reward()
 show_window()
-
-
-setInterval render_all, 1000
 
 window.addEventListener 'resize', render_all
