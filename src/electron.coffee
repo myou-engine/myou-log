@@ -148,7 +148,7 @@ if isElectron
     app.on 'ready', ->
         create_main_window()
 else
-    electron = require 'electron-prebuilt'
+    electron = require 'electron'
     proc = require 'child_process'
     # spawn electron
     child = proc.spawnSync electron, ["node_modules/coffeescript/bin/coffee", __filename], {stdio: 'inherit', shell: true}
