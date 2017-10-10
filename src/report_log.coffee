@@ -13,7 +13,8 @@ get_day = (date)-> Math.floor((date-tzoffset)/1000/60/60/24)*1000*60*60*24 + tzo
 get_todays_activity_duration = (log)->
     report_log log
     total = 0
-    for entry in entries_by_day[get_day Date.now()] when entry.active
+    entries = entries_by_day[get_day Date.now()] or []
+    for entry in entries when entry.active
         total += entry.duration or 0
     return total
 
