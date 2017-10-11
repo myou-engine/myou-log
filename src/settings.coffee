@@ -5,6 +5,8 @@ is_linux = process.platform == 'linux'
 is_win = process.platform == 'win32'
 is_mac = process.platform == 'darwin'
 
+
+
 new class MyouLogSettings
     constructor: ->
         ctrl_key = if is_mac then "Command" else "Control"
@@ -15,7 +17,7 @@ new class MyouLogSettings
             global_shortcuts:
                 yes: "#{ctrl_key}+Alt+Y"
                 no: "#{ctrl_key}+Alt+N"
-                main_window: "#{ctrl_key}+Alt+Q"
+                questions_window: "#{ctrl_key}+Alt+Q"
                 report_window: "#{ctrl_key}+Alt+R"
                 settings_window: "#{ctrl_key}+Alt+S"
                 sound_test: "#{ctrl_key}+Alt+P"
@@ -24,6 +26,12 @@ new class MyouLogSettings
             reward_ratio: 1/4
             reward_pack: 300000 # 5 min
             day_boundary_inactivity: 2*3600*1000
+
+        backwards_compatibility = (s)->
+            debugger
+            s.global_shortcuts.questions_window = s.global_shortcuts.main_window or "#{ctrl_key}+Alt+Q"
+            delete s.global_shortcuts.main_window
+            return s
 
         combine_changes = (original, changes)->
             for k,v of changes
@@ -63,12 +71,11 @@ new class MyouLogSettings
             catch err
                 console.log err
 
-
         @load_settings = load_settings = =>
             if fs.existsSync app_data + 'settings.json'
                 try
                     data = fs.readFileSync(app_data + 'settings.json', 'utf8').toString()
-                    old_settings = JSON.parse(data)
+                    old_settings = backwards_compatibility  JSON.parse(data)
                     combine_changes(@settings, old_settings)
                     console.log 'Settings file read.'
                 catch err

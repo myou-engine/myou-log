@@ -126,7 +126,7 @@ class Log
 
     add_multiple_entries: (entries=[], save=true)->
         for e in entries
-            @new_entry e, false
+            @new_entry e, false, false
         if save then @save()
         return
 
@@ -167,7 +167,7 @@ class Log
             if not e.pause?
                 e.duration = @get_duration i, entries
 
-    new_entry: (entry, save=true)->
+    new_entry: (entry, save=true, console_log=true)->
         {active, task, date_str, pause} = entry
         if not date_str?
             {date} = entry
@@ -184,9 +184,10 @@ class Log
             entry.date_str = new Date(date).toISOString()
 
         if pause?
-            # console.log "%c#{if pause then 'PAUSE' else 'PLAY'}
-            #     #{new Date(date).toLocaleString()}",
-            #     "color:#{if pause then 'red' else 'green'}"
+            if console_log
+                console.log "%c#{if pause then 'PAUSE' else 'PLAY'}
+                    #{new Date(date).toLocaleString()}",
+                    "color:#{if pause then 'red' else 'green'}"
             @is_paused = pause
             @entries.push entry
             if save
@@ -202,10 +203,11 @@ class Log
                 @last_task = task
             @is_active = active
             @is_paused = false
-            # console.log "%c#{if active then 'working on' else 'distracted'}
-            #      #{if task then task else if active then 'UNKNOWN' else ''}
-            #      #{new Date(date).toLocaleString()}",
-            #      "color:#{if active then 'blue' else 'gray'}"
+            if console_log
+                console.log "%c#{if active then 'working on' else 'distracted'}
+                     #{if task then task else if active then 'UNKNOWN' else ''}
+                     #{new Date(date).toLocaleString()}",
+                     "color:#{if active then 'blue' else 'gray'}"
             @entries.push entry
             @last_entry = entry
             if save

@@ -193,9 +193,9 @@ class SettingsComponent extends React.Component
                                         save_settings(isDebug)
                                 components.text_input
                                     label: "Show Questions"
-                                    read: -> settings.global_shortcuts.main_window
+                                    read: -> settings.global_shortcuts.questions_window
                                     onSubmit: (v)->
-                                        settings.global_shortcuts.main_window = v
+                                        settings.global_shortcuts.questions_window = v
                                         save_settings(isDebug)
                                 components.text_input
                                     label: "Show Report"

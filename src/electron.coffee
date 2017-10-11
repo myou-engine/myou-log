@@ -77,7 +77,7 @@ if isElectron
         win.isDebug = isDebug
         return win
 
-    create_main_window = ->
+    create_questions_window = ->
         if isDebug
             save_settings(settings, true)
 
@@ -109,7 +109,7 @@ if isElectron
             win = null
 
         win.isDebug = isDebug
-        win.recreate = create_main_window
+        win.recreate = create_questions_window
         win.create_report_window = create_report_window
         win.create_settings_window = create_settings_window
         win.add_post_save_callback = add_post_save_callback
@@ -118,7 +118,7 @@ if isElectron
 
         # Load the html of the app.
         win.loadURL url.format
-            pathname: path.join __dirname, 'UI/html/main.html'
+            pathname: path.join __dirname, 'UI/html/questions.html'
             protocol: 'file:'
             slashes: true
         return win
@@ -137,7 +137,7 @@ if isElectron
         # On macOS it's common to re-create a window in the app when the
         # dock icon is clicked and there are no other windows open.
         if not win?
-            create_main_window()
+            create_questions_window()
 
     # In this file you can include the rest of your app's specific main process
     # code. You can also put them in separate files and require them here.
@@ -146,7 +146,7 @@ if isElectron
     # initialization and is ready to create browser windows.
     # Some APIs can only be used after this event occurs.
     app.on 'ready', ->
-        create_main_window()
+        create_questions_window()
 else
     electron = require 'electron'
     proc = require 'child_process'

@@ -7,7 +7,6 @@ require 'myoui/default_animations'
 
 path = require 'path'
 
-moment = require 'moment'
 markdown = react_utils.React.createFactory require('react-remarkable')
 theme = new Theme
 
@@ -71,23 +70,6 @@ sounds = {
     notification: new Audio path.join __dirname, '../../assets/sounds/notification.mp3'
 }
 
-format_time = (time=Date.now())->
-    sec = Math.floor (time / 1000) % 60
-    min = Math.floor (time / (1000*60)) % 60
-    hours = Math.floor (time / (1000*60*60)) % 24
-    days = Math.floor time / (1000*60*60*24)
 
-    formated_time = ''
-    if days or hours or min or sec
-        if not(hours or days)
-            formated_time = "#{sec} sec"
-        if days or hours or min
-            if not (days)
-                formated_time = "#{min} min " + formated_time
-            if days or hours
-                formated_time = "#{hours} hour#{if hours > 1 then 's' else ''} " + formated_time
-                if days
-                    formated_time = "#{days} day#{if days > 1 then 's' else ''} " + formated_time
-    return formated_time or '0 sec'
 
-module.exports = {react_utils, theme, mixins, components, sounds, markdown, format_time, moment}
+module.exports = {react_utils, theme, mixins, components, sounds, markdown}

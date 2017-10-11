@@ -1,4 +1,5 @@
-{react_utils, theme, mixins, components, sounds, format_time, markdown, moment} = require './common.coffee'
+{react_utils, theme, mixins, components, sounds, markdown} = require './common'
+{format_time, moment} = require './time'
 {React, ReactDOM} = react_utils
 e = (t, args...) ->
     if not t.prototype?.render? and not t.toLocaleUpperCase?
