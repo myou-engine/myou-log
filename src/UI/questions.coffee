@@ -49,7 +49,9 @@ class AskIfActive extends React.Component
 
     render: ->
         date_now = Date.now()
-        last_activity_duration = log.get_activity_duration(
+        last_activity_duration = 0
+        if log.last_activity_change?
+            last_activity_duration = log.get_activity_duration(
                 log.last_activity_change.hidden.index)
         time_since_show_window = date_now - when_window_was_shown
 

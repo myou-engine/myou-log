@@ -8,7 +8,7 @@ class Log
         @entries = []
         @last_entry = null
         @is_active = false
-        @last_activity_change = 0
+        @last_activity_change = null
         @is_paused = false
         @add_multiple_entries entries, false
 
