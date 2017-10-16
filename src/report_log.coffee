@@ -2,36 +2,30 @@ electron = require 'electron'
 ewin = electron.remote.getCurrentWindow()
 settings = ewin.settings
 
-final_entries = []
-entries_by_day = {}
-days_state = []
-days = []
-
 tzoffset = (new Date()).getTimezoneOffset()*60*1000
 get_day = (date)-> Math.floor((date-tzoffset)/1000/60/60/24)*1000*60*60*24 + tzoffset
 
 get_todays_activity_duration = (log)->
-    report_log log
+    {entries_by_day, today} = report_log log
     total = 0
-    entries = entries_by_day[get_day Date.now()] or []
+    entries = entries_by_day[today] or []
     for entry in entries when entry.active
         total += entry.duration or 0
     return total
 
-module.exports = {get_todays_activity_duration, get_day, final_entries, entries_by_day, days_state, days}
-
-
-report_log = module.exports.report_log = (log)->
-    final_entries.splice 0, final_entries.length
-    days_state.splice 0, days_state.length
-    days.splice 0, days.length
+report_log = (log)->
+    final_entries = []
+    entries_by_day = {}
+    days_state = []
+    days = []
+    today = 0
 
     last_was_active = false
     last_task = null
     entries = log.get_clean_entries()
     log.add_duration(entries)
 
-    # add day boundaries and invert
+    # add day boundaries
     {day_boundary_inactivity} = settings
     day = 0
     previous = 0
@@ -43,6 +37,14 @@ report_log = module.exports.report_log = (log)->
         previous = entry.date
         entry.day = day
         final_entries.push entry
+    # calculate today with same boundary logic
+    now = Date.now()
+    real_day = get_day now
+    if now - Math.max(previous, real_day) > day_boundary_inactivity
+        today = real_day
+    else
+        today = day
+
     final_entries.reverse()
 
     for k,entry of entries_by_day
@@ -73,3 +75,7 @@ report_log = module.exports.report_log = (log)->
 
         else
             day_state.inactivity_duration += entry.duration
+
+    return {final_entries, entries_by_day, days_state, days, today}
+
+module.exports = {get_todays_activity_duration, report_log}

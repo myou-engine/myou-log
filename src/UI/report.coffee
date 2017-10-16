@@ -22,13 +22,7 @@ ewin.setMinimumSize new_width, min_height
 
 last_date = null
 
-{report_log, get_day, final_entries, entries_by_day, days_state, days} = require '../report_log'
-
-today = 0
-update_today = ->
-    today = get_day Date.now()
-
-update_today()
+{report_log} = require '../report_log'
 
 class ReportComponent extends React.Component
     constructor: (props={})->
@@ -37,7 +31,18 @@ class ReportComponent extends React.Component
             date_from: 0
             date_to: Date.now()
 
+        own_log = require('../log').log
+
+        @report = report_log own_log
+
+        window.load_other_log = (path) =>
+            l = new Log
+            l.load path
+            @report = report_log l
+            return l
+
     render: ->
+        {final_entries, entries_by_day, days_state, days, today} = @report
         date_now = Date.now()
 
         group_entries = true # TODO: group by date?
@@ -195,8 +200,8 @@ class ReportComponent extends React.Component
                                         flip: true
                                         label: 'detailed'
                                         read: do(i)->-> days_state[i].details # details state
-                                        write: do(i)->(currentState)->
-                                            render_all()
+                                        write: do(i)=> (currentState)=>
+                                            @forceUpdate()
                                             days_state[i].details = (currentState + 1) % 2
                             e 'div',
                                 style:
@@ -300,21 +305,7 @@ class ReportComponent extends React.Component
             #         print()
             #     label: 'Print report'
 
-render_all= ->
-    update_today()
-    ReactDOM.render e(ReportComponent), app_element
-
-own_log = require('../log').log
-
-report_log own_log
-
-render_all()
-
-window.load_other_log = (path)->
-    l = new Log
-    l.load path
-    report_log l
-    return l
+ReactDOM.render e(ReportComponent), app_element
 
 addEventListener 'keydown', (event)->
     if event.keyCode == 123
