@@ -20,3 +20,7 @@ Your activity will be compiled into a log which you can see in detail from the _
 ## Settings window
 You can customize some parameters from the __settings window__. 
 ![myou-log question window](http://pixelements.net/myou/myou-log/screenshots/myou_log_03.png)
+
+# Download
+latest version of [myou-log](https://github.com/myou-engine/myou-log/releases/latest)
+
