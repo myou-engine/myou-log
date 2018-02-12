@@ -91,6 +91,7 @@ if isElectron
             title: 'MyouLog'
             skipTaskbar: true
             resizable: false
+            alwaysOnTop: true
 
         # Create the browser window.
         win = new BrowserWindow options

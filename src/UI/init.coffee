@@ -37,7 +37,7 @@ addEventListener 'keydown', (event)->
 
 
 show_questions_window = ->
-    # ewin.setAlwaysOnTop true
+    ewin.setAlwaysOnTop true
     require('./questions').show_window()
 
 report_window = null
@@ -72,12 +72,12 @@ show_report_window_shortcut = false
 show_settings_window_shortcut = false
 yes_shortcut = false
 no_shortcut = false
-# sound_test = false
+sound_test = false
 
 apply_settings = ->
     if settings.open_on_startup
         auto_launcher.isEnabled().then (enabled)->
-            if not enabled
+            if not enable
                 auto_launcher.enable().then ()->
                     console.log 'Open on system startup ENABLED'
     else
@@ -96,13 +96,16 @@ apply_settings = ->
         globalShortcut.unregister yes_shortcut
     if no_shortcut
         globalShortcut.unregister no_shortcut
-    # if sound_test_shortcut
-    #     globalShortcut.unregister sound_test_shortcut
+    if sound_test_shortcut
+        globalShortcut.unregister sound_test_shortcut
 
     questions_registered = globalShortcut.register settings.global_shortcuts.questions_window, show_questions_window
     report_registered = globalShortcut.register settings.global_shortcuts.report_window, show_report_window
     settings_registered = globalShortcut.register settings.global_shortcuts.settings_window, show_settings_window
-    # sound_test_registered = globalShortcut.register settings.global_shortcuts.sound_test, -> ui_alarm()
+
+    {sounds} = require './common.coffee'
+    sound_test_registered = globalShortcut.register settings.global_shortcuts.sound_test, ->
+        sounds.notification.play()
 
     if questions_registered
         show_questions_window_shortcut = settings.global_shortcuts.questions_window
@@ -121,11 +124,11 @@ apply_settings = ->
         show_settings_window_shortcut = false
         console.warn 'Global shorcut in use: ' + settings.global_shortcuts.settings_window
 
-    # if sound_test_registered
-    #     sound_test_shortcut = settings.global_shortcuts.questions_window
-    # else
-    #     sound_test_shortcut = false
-    #     console.warn 'Global shorcut in use: ' + settings.global_shortcuts.sound_test
+    if sound_test_registered
+        sound_test_shortcut = settings.global_shortcuts.questions_window
+    else
+        sound_test_shortcut = false
+        console.warn 'Global shorcut in use: ' + settings.global_shortcuts.sound_test
 
 apply_settings()
 

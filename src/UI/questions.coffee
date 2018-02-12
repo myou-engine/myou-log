@@ -58,6 +58,7 @@ class AskIfActive extends React.Component
         question = 'Are you working?'
         log_reward = log.get_reward()
         reward = Math.min(reward, log_reward)
+        ewin.setFocusable false
 
         if log.entries.length
             if log.is_active
@@ -99,6 +100,8 @@ class AskIfActive extends React.Component
                     useHighlight:true
                     title: "Global Shortcut: #{settings.global_shortcuts.yes}"
                     onClick: =>
+                        ewin.setFocusable true
+                        ewin.focus()
                         set_inactivity_check()
                         set_dialog 'AskActivity'
                         set_auto_hide_time 10, ->
@@ -148,6 +151,8 @@ class AskActivity extends React.Component
                 auto_highlight: true
                 writing_working_on: false
             }
+            ewin.setFocusable false
+            ewin.blur()
             if current_activity
                 log.new_entry {active: true, date: Date.now(), task: current_activity}
             else
@@ -276,8 +281,9 @@ ewin.on 'minimize', ->
 
 exports.show_window = show_window = (alarm)->
     hidden_window = false
+    ewin.setFocusable false
+    ewin.setAlwaysOnTop true
     ewin.show()
-    ewin.blur()
     when_window_was_shown = Date.now()
     clearTimeoutSH show_window_timeout
     # play again (not pause)
@@ -385,6 +391,7 @@ class MainComponent extends React.Component
         yes_sc = globalShortcut.register settings.global_shortcuts.yes, =>
             if @state.dialog == 'AskIfActive'
                 @setState dialog: 'AskActivity'
+                ewin.setFocusable true
                 ewin.focus()
                 set_inactivity_check()
                 set_auto_hide_time 10, ->

@@ -28,7 +28,6 @@ new class MyouLogSettings
             day_boundary_inactivity: 2*3600*1000
 
         backwards_compatibility = (s)->
-            debugger
             s.global_shortcuts.questions_window = s.global_shortcuts.main_window or "#{ctrl_key}+Alt+Q"
             delete s.global_shortcuts.main_window
             return s
